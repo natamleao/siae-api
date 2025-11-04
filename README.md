@@ -51,3 +51,27 @@ Certifique-se de ter as seguintes ferramentas instaladas em sua máquina:
 * **pnpm** (Gerenciador de pacotes, recomendado conforme seu lockfile) ou **npm**.
 * **TypeScript** (instalado globalmente ou via `pnpm install`).
 * **Cliente REST** (Postman, Insomnia ou Thunder Client) para testar os endpoints.
+
+### ⚙️ Passo a passo
+
+1️⃣ Clonar o repositório
+```bash
+git clone https://github.com/devsiae-ludi/siae-api
+cd siae-api
+```
+
+2️⃣ Instalar as dependências
+```bash
+pnpm install
+```
+
+3️⃣ Executar o servidor de desenvolvimento
+```bash
+pnpm dev
+```
+
+A aplicação estará disponível em:
+👉 http://localhost:3000
+
+**Caso você não saiba como usar o Postman para testar requisições HTTP, veja este guia rápido:**  
+[Como usar o Postman?](https://www.youtube.com/watch?v=64-O-dDR7ic)
