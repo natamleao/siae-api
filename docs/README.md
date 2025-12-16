@@ -70,4 +70,8 @@ Pronto! Os diagramas serão renderizados automaticamente a partir do arquivo **w
 
 
 ---
+# Visualizar Esquema de Banco de Dados
 
+Para visualizar o esquema de banco de dados atual, basta acessar o link do arquivo draw.io.
+
+- Acesse [aqui](https://drive.google.com/file/d/1GUMBCfDnMkMACP7h49mVVtEl_f3BkbUn/view?usp=sharing)
