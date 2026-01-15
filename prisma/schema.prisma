@@ -1,0 +1,201 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Permissao {
+  ALUNO
+  TECNICO
+  ASSISTENTE
+}
+
+enum Sexo {
+  MASCULINO
+  FEMININO
+  OUTRO
+  NAO_INFORMAR
+}
+
+enum EstadoCivil {
+  SOLTEIRO
+  CASADO
+  DIVORCIADO
+  VIUVO
+  UNIAO_ESTAVEL
+}
+
+enum TipoMoradia {
+  PROPRIA
+  ALUGADA
+  CEDIDA
+  REPUBLICA
+  OUTRO
+}
+
+enum TipoIngresso {
+  SISU
+  TRANSFERENCIA
+  OUTRO
+}
+
+model Usuario {
+  id        Int        @id @default(autoincrement())
+  email     String     @unique
+  senha     String
+  permissao Permissao  @default(ALUNO)
+  
+  matricula Int?       @unique 
+  siape     Int?       @unique  
+  
+  solicitacoes Solicitacao[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("usuarios")
+  @@index([permissao])
+}
+
+model Solicitacao {
+  id            Int      @id @default(autoincrement())
+  usuarioId     Int
+  formularioId  Int      @unique
+  
+  usuario    Usuario    @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  formulario Formulario @relation(fields: [formularioId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("solicitacoes")
+}
+
+enum situacaoSaude{
+  doençasGraves
+  cronicas
+  deficiencia
+  usomedicacaocontinua
+}
+
+model Formulario {
+  id                 Int      @id @default(autoincrement())
+  nomeCompleto       String
+  cpf                String   @unique
+  rg                 String
+  dataNascimento     DateTime
+  nomeResponsavel    String?
+  sexo               Sexo
+  orientacaoSexual   String?
+  identidadeGenero   String?
+  etniaRaca          String?
+  estadoCivil        EstadoCivil
+  deficiencia        String?
+  telefone           String
+  email              String
+  
+  // Endereço
+  tipoMoradia        TipoMoradia
+  logradouro         String
+  numeroAp           String
+  complemento        String?
+  bairro             String
+  municipio          String
+  estado             String
+  origemFamilia      String?
+  moradiaAtual       String?
+  
+  // Dados Acadêmicos
+  matricula          Int
+  curso              String
+  turno              String
+  tipoIngresso       TipoIngresso
+  recebeAux          Boolean  @default(false)
+  tipoAuxRecebido    String?
+  
+  //renda e despesas
+  rendaTotal      Float
+  rendaPercapita  Float
+  moradia         Float
+  transporte      Float
+  alimentacao     Float
+  saude           Float
+  educacao        Float
+  outrasDespesas  String
+
+//agravantes
+  situacaoSaude   situacaoSaude
+  violacaoDireitos  String 
+  condicaoDeslocamento   String
+  gestacaoFilhos   String
+  progamasSociais   String
+
+//relato pessoal
+  relatoPessoal   String
+
+  solicitacao Solicitacao?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("formularios")
+}
+
+enum parentesco {
+  pai
+  mae
+  irmaoIrma
+  avos
+  tioTia
+  primoPrima
+  conjuge
+  outro
+}
+
+enum situacaoOcupacional {
+  propietarioEmpresa
+  microempreendedorIndividual
+  assalariado
+  aposentadoPensionista
+  informalAutonomo
+  pensaoAlimenticia
+  atividadeRural
+  bolsistaEstagiario
+  desempregado
+}
+
+model MembroFamilia{ //posso fazer como model? eu fiz pq como 1 uma pessoa tem varios membros
+  id    Int   @id @default(autoincrement())
+
+  nomeFamiliar  String
+  parentesco  parentesco
+  dataNascimento  DateTime
+  situacaoOcupacional  situacaoOcupacional
+  rendaIndividual Float
+  contribui Boolean
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("membros_familia")
+}
+
+
+model ComposicaoFamiliar{
+  id              Int              @id @default(autoincrement())
+  formularioId    Int              @unique
+  totalMembros    Int
+
+  formulario      Formulario      @relation(fields: [formularioId], references: [id], onDelete: Cascade)
+  membrosFamilia  MembroFamilia[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  @@map("composicao_familiar")
+
+}
