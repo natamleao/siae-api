@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -45,77 +42,141 @@ enum TipoIngresso {
   OUTRO
 }
 
+enum SituacaoSaude {
+  doencasGraves
+  cronicas
+  deficiencia
+  usomedicacaocontinua
+}
+
+enum Parentesco {
+  pai
+  mae
+  irmaoIrma
+  avos
+  tioTia
+  primoPrima
+  conjuge
+  outro
+}
+
+enum SituacaoOcupacional {
+  propietarioEmpresa
+  microempreendedorIndividual
+  assalariado
+  aposentadoPensionista
+  informalAutonomo
+  pensaoAlimenticia
+  atividadeRural
+  bolsistaEstagiario
+  desempregado
+}
+
 model Usuario {
-  id        Int        @id @default(autoincrement())
-  email     String     @unique
-  senha     String
-  permissao Permissao  @default(ALUNO)
-  
-  matricula Int?       @unique 
-  siape     Int?       @unique  
-  
-  solicitacoes Solicitacao[]
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
+  id                Int          @id @default(autoincrement())
+  email             String       @unique
+  senha             String
+  permissao         Permissao    @default(ALUNO)
+  matricula         Int?         @unique
+  siape             Int?         @unique
+  resetToken        String?
+  resetTokenExpiry  DateTime?
+  solicitacoes      Solicitacao[]
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
   @@map("usuarios")
   @@index([permissao])
 }
 
 model Solicitacao {
-  id            Int      @id @default(autoincrement())
-  usuarioId     Int
-  formularioId  Int      @unique
-  
-  usuario    Usuario    @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  formulario Formulario @relation(fields: [formularioId], references: [id], onDelete: Cascade)
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
+  id           Int        @id @default(autoincrement())
+  usuarioId    Int
+  formularioId Int        @unique
+  usuario      Usuario    @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  formulario   Formulario @relation(fields: [formularioId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
   @@map("solicitacoes")
 }
 
 model Formulario {
-  id                 Int      @id @default(autoincrement())
-  nomeCompleto       String
-  cpf                String   @unique
-  rg                 String
-  dataNascimento     DateTime
-  nomeResponsavel    String?
-  sexo               Sexo
-  orientacaoSexual   String?
-  identidadeGenero   String?
-  etniaRaca          String?
-  estadoCivil        EstadoCivil
-  deficiencia        String?
-  telefone           String
-  email              String
-  
-  // Endereço
-  tipoMoradia        TipoMoradia
-  logradouro         String
-  numeroAp           String
-  complemento        String?
-  bairro             String
-  municipio          String
-  estado             String
-  origemFamilia      String?
-  moradiaAtual       String?
-  
-  // Dados Acadêmicos
-  matricula          Int
-  curso              String
-  turno              String
-  tipoIngresso       TipoIngresso
-  recebeAux          Boolean  @default(false)
-  tipoAuxRecebido    String?
-  
-  solicitacao Solicitacao?
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
+  id                   Int                 @id @default(autoincrement())
+  nomeCompleto         String
+  cpf                  String              @unique
+  rg                   String
+  dataNascimento       DateTime
+  nomeResponsavel      String?
+  sexo                 Sexo
+  orientacaoSexual     String?
+  identidadeGenero     String?
+  etniaRaca            String?
+  estadoCivil          EstadoCivil
+  deficiencia          String?
+  telefone             String
+  email                String
+  tipoMoradia          TipoMoradia
+  logradouro           String
+  numeroAp             String
+  complemento          String?
+  bairro               String
+  municipio            String
+  estado               String
+  origemFamilia        String?
+  moradiaAtual         String?
+  matricula            Int
+  curso                String
+  turno                String
+  tipoIngresso         TipoIngresso
+  recebeAux            Boolean             @default(false)
+  tipoAuxRecebido      String?
+  rendaTotal           Float
+  rendaPercapita       Float
+  moradia              Float
+  transporte           Float
+  alimentacao          Float
+  saude                Float
+  educacao             Float
+  outrasDespesas       String
+  situacaoSaude        SituacaoSaude
+  violacaoDireitos     String
+  condicaoDeslocamento String
+  gestacaoFilhos       String
+  progamasSociais      String
+  relatoPessoal        String
+  solicitacao          Solicitacao?
+  composicaoFamiliar   ComposicaoFamiliar?
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
   @@map("formularios")
+}
+
+model MembroFamilia {
+  id                   Int                 @id @default(autoincrement())
+  composicaoFamiliarId Int
+  nomeFamiliar         String
+  parentesco           Parentesco
+  dataNascimento       DateTime
+  situacaoOcupacional  SituacaoOcupacional
+  rendaIndividual      Float
+  contribui            Boolean
+  composicaoFamiliar   ComposicaoFamiliar  @relation(fields: [composicaoFamiliarId], references: [id], onDelete: Cascade)
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  @@map("membros_familia")
+}
+
+model ComposicaoFamiliar {
+  id              Int             @id @default(autoincrement())
+  formularioId    Int             @unique
+  totalMembros    Int
+  formulario      Formulario      @relation(fields: [formularioId], references: [id], onDelete: Cascade)
+  membrosFamilia  MembroFamilia[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@map("composicao_familiar")
 }
