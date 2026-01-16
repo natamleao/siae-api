@@ -4,8 +4,9 @@ import jwt from 'jsonwebtoken';
 import { ForgotPasswordData, ResetPasswordData, LoginData, RegisterData, AuthResult } from "../models/models";
 import { Usuario } from '@prisma/client';
 import crypto from 'crypto';
+import { EmailService } from './emailService';
 
-const RESET_TOKEN_EXPIRY_HOURS = 1;
+const RESET_TOKEN_EXPIRY_MINUTES = 5;
 const JWT_SECRET = process.env.JWT_SECRET || 'KEY';
 const JWT_EXPIRES_IN = '7d';
 
@@ -34,9 +35,15 @@ export class AuthService {
 
         const resetToken = crypto.randomBytes(32).toString('hex');
         const resetTokenExpiry = new Date();
-        resetTokenExpiry.setHours(resetTokenExpiry.getHours() + RESET_TOKEN_EXPIRY_HOURS);
+        resetTokenExpiry.setMinutes(resetTokenExpiry.getMinutes() + RESET_TOKEN_EXPIRY_MINUTES);
 
         await UserRepository.updateResetToken(user.id, resetToken, resetTokenExpiry);
+
+        try {
+            await EmailService.sendResetPasswordEmail(user.email, resetToken);
+        } catch (error) {
+            console.error('Erro ao enviar email:', error);
+        }
 
         return { success: true, message: 'Se o email existir, você receberá um link de recuperação' };
     }
