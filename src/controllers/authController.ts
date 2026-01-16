@@ -76,12 +76,20 @@ export class AuthController {
             const result = await AuthService.authenticate({ email, password });
             const status = result.success ? 200 : 401;
 
+            if (result.success && result.token) {
+                res.cookie('authToken', result.token, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: 'lax',
+                    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+                });
+            }
+
             return res.status(status).json({
                 success: result.success,
                 message: result.success
                     ? "Login realizado com sucesso"
                     : result.message,
-                ...(result.token && { token: result.token }),
                 ...(result.user && { user: result.user }),
             });
         } catch (error: any) {
@@ -107,10 +115,18 @@ export class AuthController {
             const result = await AuthService.register(data);
             const status = result.success ? 201 : 400;
 
+            if (result.success && result.token) {
+                res.cookie('authToken', result.token, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: 'lax',
+                    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+                });
+            }
+
             return res.status(status).json({
                 success: result.success,
                 message: result.message,
-                ...(result.token && { token: result.token }),
                 ...(result.user && { user: result.user }),
             });
         } catch (error: any) {
