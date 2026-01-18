@@ -78,8 +78,8 @@ pnpm install
         EMAIL_PORT=465
         EMAIL_USER="Email responsável por enviar os emails"
         EMAIL_PASS="abc def hji jkl"
-        [Como conseguir EMAIL_PASS?](https://www.youtube.com/watch?v=vZNdhwdW4_g)
         
+[Como conseguir EMAIL_PASS?](https://www.youtube.com/watch?v=vZNdhwdW4_g)
 
 4️⃣ Configuração do Prisma
 ```bash
