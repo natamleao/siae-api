@@ -65,7 +65,30 @@ cd siae-api
 pnpm install
 ```
 
-3️⃣ Executar o servidor de desenvolvimento
+3️⃣ Criar arquivo .env na raíz
+
+    1️⃣ Configuração do Ambiente (Banco, CORS e Segurança)
+        DATABASE_URL="file:./dev.db"
+        CORS_ORIGIN=http://localhost:5173
+        NODE_ENV=development
+        JWT_SECRET="SIAEJWTUFC"
+
+    2️⃣ Variáveis de Ambiente para Envio de E-mails 
+        EMAIL_HOST=smtp.gmail.com
+        EMAIL_PORT=465
+        EMAIL_USER="Email responsável por enviar os emails"
+        EMAIL_PASS="abc def hji jkl"
+        
+[Como conseguir EMAIL_PASS?](https://www.youtube.com/watch?v=vZNdhwdW4_g)
+
+4️⃣ Configuração do Prisma
+```bash
+npx prisma generate
+npx prisma migrate dev --name init
+npx prisma db push
+```
+
+5️⃣ Executar o servidor de desenvolvimento
 ```bash
 pnpm dev
 ```
