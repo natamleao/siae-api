@@ -1,12 +1,37 @@
+# Arquitetura projetada
 
-#  Visualizando diagramas Structurizr DSL no GitHub
+## Diagrama de Contexto
+[<div align="center"><img src="arquitetura/siae-C1_Context.png" alt="descrição"></div>](arquitetura/siae-C1_Context.png)
+
+[Diagrama de Contexto](arquitetura/siae-C1_Context.png)
+
+## Diagrama de Contêiner
+[<div align="center"><img src="arquitetura/siae-C2_Containers.png" alt="descrição"></div>](arquitetura/siae-C2_Containers.png)
+
+[Diagrama de Contêiner](arquitetura/siae-C2_Containers.png)
+
+## Diagrama de Componente
+
+
+[<div align="center"><img src="arquitetura/siae-C3_Components.png" alt="descrição"></div>](arquitetura/siae-C3_Components.png.png)
+
+[Diagrama de Componente](arquitetura/siae-C3_Components.png)
+
+## Esquema de Banco de dados
+[<div align="center"><img src="banco/Esquema-de-Banco-de-Dados.drawio.png" alt="descrição"></div>](banco/Esquema-de-Banco-de-Dados.drawio.png)
+
+
+Para visualizar o esquema de banco de dados atual, basta acessar o link do arquivo draw.io. Acesse [aqui](https://drive.google.com/file/d/1GUMBCfDnMkMACP7h49mVVtEl_f3BkbUn/view?usp=sharing)
+
+
+##  Visualizando diagramas Structurizr DSL no GitHub
 
 Este projeto utiliza **Structurizr DSL** para gerar diagramas de arquitetura de software.
 Como o GitHub não renderiza diagramas automaticamente a partir do `.dsl`, existem duas maneiras simples de visualizar os diagramas.
 
 ---
 
-##  Opção 1 — Usar o Structurizr Lite através do Docker (recomendado)
+###  Opção 1 — Usar o Structurizr Lite através do Docker (recomendado)
 
 > Para usar esse método é necessário possuir e entender um pouco de docker.
 
@@ -57,7 +82,7 @@ Pronto! Os diagramas serão renderizados automaticamente a partir do arquivo **w
 
 ---
 
-##  Opção 2 — Usar o editor online do Structurizr (mais simples)
+###  Opção 2 — Usar o editor online do Structurizr (mais simples)
 
 1. Abra o site:
     [https://structurizr.com/dsl](https://structurizr.com/dsl)
@@ -68,10 +93,4 @@ Pronto! Os diagramas serão renderizados automaticamente a partir do arquivo **w
 
 4. Clique no botão **Render** para visualizar os diagramas.
 
-
 ---
-# Visualizar Esquema de Banco de Dados
-
-Para visualizar o esquema de banco de dados atual, basta acessar o link do arquivo draw.io.
-
-- Acesse [aqui](https://drive.google.com/file/d/1GUMBCfDnMkMACP7h49mVVtEl_f3BkbUn/view?usp=sharing)
