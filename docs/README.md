@@ -1,8 +1,3 @@
-# Arquitetura projetada
-Com base no seu TCC e nos materiais fornecidos, vou criar uma explicação detalhada para cada diagrama e esquema que possa ser utilizada em um README no GitHub. Organizei de forma clara e técnica, mantendo a linguagem acessível para diferentes stakeholders.
-
----
-
 # SIAE - Sistema Integrado à Assistência Estudantil
 
 ## Visão Geral
@@ -78,9 +73,3 @@ A arquitetura foi documentada utilizando o **Modelo C4**, que oferece diferentes
 
 ---
 
-
-## Autores
-
-**Ruan Pablo de Sousa Estácio** - Graduando em Engenharia de Software - UFC Campus Russas
-
-**Orientadora:** Profa. Ms. Valéria Maria da Silva Pinheiro
