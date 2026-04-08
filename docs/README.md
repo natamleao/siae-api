@@ -1,77 +1,75 @@
+# SIAE - Sistema Integrado à Assistência Estudantil
 
-#  Visualizando diagramas Structurizr DSL no GitHub
+## Visão Geral
 
-Este projeto utiliza **Structurizr DSL** para gerar diagramas de arquitetura de software.
-Como o GitHub não renderiza diagramas automaticamente a partir do `.dsl`, existem duas maneiras simples de visualizar os diagramas.
+O SIAE é uma solução desenvolvida para modernizar e centralizar os processos de solicitação e análise de auxílios estudantis na Universidade Federal do Ceará (UFC) - Campus Russas. O sistema substitui o processo manual baseado em planilhas e documentos de texto, trazendo eficiência, segurança e rastreabilidade para toda a operação.
 
----
+### Problema Resolvido
+- Processo descentralizado com informações dispersas
+- Comunicação ineficiente entre alunos e assistentes
+- Processos manuais suscetíveis a erros
+- Sobrecarga da equipe diante da crescente demanda
 
-##  Opção 1 — Usar o Structurizr Lite através do Docker (recomendado)
-
-> Para usar esse método é necessário possuir e entender um pouco de docker.
-
-1. **Crie uma pasta no disco C:**
-
-   ```
-   C:\structurizrlite
-   ```
-
-2. **Coloque o arquivo do projeto dentro dessa pasta:**
-
-   ```
-   C:\structurizrlite\workspace.dsl
-   ```
-
-3. **Abra o Terminal / PowerShell e navegue até essa pasta:**
-
-   ```powershell
-   cd C:\structurizrlite
-   ```
-
-4. **Execute o Structurizr Lite usando Docker:**
-
-   ```powershell
-   docker run -it --rm -p 8080:8080 `
-     -v C:/structurizrlite:/usr/local/structurizr `
-     structurizr/lite
-   ```
-
-   De forma **generalizada**, o comando seria:
-
-   ```powershell
-   docker run -it --rm -p 8080:8080 \
-     -v $PWD:/usr/local/structurizr \
-     structurizr/lite
-   ```
-    onde o $PWD seria o caminho
-
-   **Importante:** execute esse comando **dentro da pasta que contém o arquivo `workspace.dsl`**.
-
-5. **Abra no navegador:**
-
-   ```
-   http://localhost:8080
-   ```
-
-Pronto! Os diagramas serão renderizados automaticamente a partir do arquivo **workspace.dsl**.
+### Objetivo
+Centralizar e automatizar o fluxo de trabalho, permitindo que alunos solicitem auxílios e acompanhem seus status, enquanto assistentes avaliam e gerenciam as solicitações de forma integrada e eficiente.
 
 ---
 
-##  Opção 2 — Usar o editor online do Structurizr (mais simples)
+## Arquitetura de Software
 
-1. Abra o site:
-    [https://structurizr.com/dsl](https://structurizr.com/dsl)
+A arquitetura foi documentada utilizando o **Modelo C4**, que oferece diferentes níveis de abstração para facilitar a compreensão por diferentes stakeholders. Ela pode ser vista com mais detalhes no README da [Arquitetura](Arquitetura/README.md)
 
-2. Copie o conteúdo do arquivo `workspace.dsl`.
+### Stack Tecnológica
 
-3. Cole no **textarea** do editor.
+| Camada | Tecnologias |
+|--------|-------------|
+| **Frontend** | React, TypeScript, Axios |
+| **Backend** | Node.js, Express, JWT, Bcrypt |
+| **Banco de Dados** | PostgreSQL, Prisma ORM |
+| **Integrações** | API SIGAA (validação de matrícula), SMTP/Gmail API |
+| **Modelagem** | Structurizr, Modelo C4 |
 
-4. Clique no botão **Render** para visualizar os diagramas.
+---
+
+## Modelo de Dados
+
+## Padrões Arquiteturais Adotados
+
+### 1. Cliente-Servidor (Client-Server)
+- **Aplicação:** Comunicação entre frontend e backend
+- **Justificativa:** Separação clara entre interface e lógica de negócio, permitindo escalabilidade independente
+
+### 2. Arquitetura em Camadas (Layered Architecture)
+- **Aplicação:** Organização interna do backend
+- **Camadas:** Controller → Service → Repository
+- **Justificativa:** Separação de responsabilidades, facilidade de manutenção e testabilidade
+
+### 3. Repository Pattern
+- **Aplicação:** Camada de persistência
+- **Justificativa:** Abstrai detalhes de acesso ao banco de dados, centralizando operações de CRUD
+
+### 4. Middleware Pattern (JWT)
+- **Aplicação:** Autenticação e autorização
+- **Justificativa:** Separa a lógica de segurança do restante da aplicação, facilitando manutenção e extensão
+
+---
+
+## Segurança
+
+- **Autenticação:** JWT (JSON Web Tokens) para autenticação stateless
+- **Autorização:** Middleware que valida tokens e verifica permissões baseadas no campo `permissao` da tabela Auth
+- **Proteção de Dados:** Hash de senhas com Bcrypt
+- **Integridade de Documentos:** Hash SHA-256 para verificação de integridade de arquivos
+
+---
+
+## Integrações Externas
+
+| Sistema | Finalidade | Protocolo |
+|---------|------------|-----------|
+| **SIGAA API** | Validação de matrícula ativa do aluno | HTTP/REST |
+| **Gmail API / SMTP** | Envio de notificações automáticas | SMTP/HTTPS |
 
 
 ---
-# Visualizar Esquema de Banco de Dados
 
-Para visualizar o esquema de banco de dados atual, basta acessar o link do arquivo draw.io.
-
-- Acesse [aqui](https://drive.google.com/file/d/1GUMBCfDnMkMACP7h49mVVtEl_f3BkbUn/view?usp=sharing)
