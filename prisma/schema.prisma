@@ -72,111 +72,96 @@ enum SituacaoOcupacional {
   desempregado
 }
 
-model Usuario {
-  id                Int          @id @default(autoincrement())
-  email             String       @unique
-  senha             String
-  permissao         Permissao    @default(ALUNO)
-  matricula         Int?         @unique
-  siape             Int?         @unique
-  resetToken        String?
-  resetTokenExpiry  DateTime?
-  solicitacoes      Solicitacao[]
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
+model Auth {
+  id         Int        @id @default(autoincrement())
+  email      String     @unique
+  senha      String
+  permissao  Permissao
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime?  @map("updated_at")
 
-  @@map("usuarios")
-  @@index([permissao])
+  aluno      Aluno?
+  funcionario Funcionario?
+
+  @@map("auth")
 }
 
-model Solicitacao {
-  id           Int        @id @default(autoincrement())
-  usuarioId    Int
-  formularioId Int        @unique
-  usuario      Usuario    @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  formulario   Formulario @relation(fields: [formularioId], references: [id], onDelete: Cascade)
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+model Aluno {
+  id                 Int                     @id @default(autoincrement())
+  idAuth             Int                     @unique @map("id_auth")
+  nome               String
+  cpf                String                  @unique
+  emailContato       String
+  curso              String
+  matricula          Int                     @unique
+  turno              String
+  anoIngresso        Int
+  semestreAtual      Int
+  telefone           String
+  tipoIngresso       String
+  rg                 String                  @unique
+  dataNasc           DateTime
+  sexo               String
+  orientacaoSexual   String
+  identidadeGenero   String
+  etniaRaca          String
+  estadoCivil        String
+  deficiencia        String
+  createdAt          DateTime                @default(now()) @map("created_at")
+  updatedAt          DateTime?               @map("updated_at")
 
-  @@map("solicitacoes")
+  enderecos          Endereco[]
+  composicoes        ComposicaoParentesco[]
+
+  @@map("aluno")
 }
 
-model Formulario {
-  id                   Int                 @id @default(autoincrement())
-  nomeCompleto         String
-  cpf                  String              @unique
-  rg                   String
-  dataNascimento       DateTime
-  nomeResponsavel      String?
-  sexo                 Sexo
-  orientacaoSexual     String?
-  identidadeGenero     String?
-  etniaRaca            String?
-  estadoCivil          EstadoCivil
-  deficiencia          String?
-  telefone             String
-  email                String
-  tipoMoradia          TipoMoradia
-  logradouro           String
-  numeroAp             String
-  complemento          String?
-  bairro               String
-  municipio            String
-  estado               String
-  origemFamilia        String?
-  moradiaAtual         String?
-  matricula            Int
-  curso                String
-  turno                String
-  tipoIngresso         TipoIngresso
-  recebeAux            Boolean             @default(false)
-  tipoAuxRecebido      String?
-  rendaTotal           Float
-  rendaPercapita       Float
-  moradia              Float
-  transporte           Float
-  alimentacao          Float
-  saude                Float
-  educacao             Float
-  outrasDespesas       String
-  situacaoSaude        SituacaoSaude
-  violacaoDireitos     String
-  condicaoDeslocamento String
-  gestacaoFilhos       String
-  progamasSociais      String
-  relatoPessoal        String
-  solicitacao          Solicitacao?
-  composicaoFamiliar   ComposicaoFamiliar?
-  createdAt            DateTime            @default(now())
-  updatedAt            DateTime            @updatedAt
+model Endereco {
+  id                 Int        @id @default(autoincrement())
+  idAluno            Int        @map("id_aluno")
+  tipoMoradia        TipoMoradia
+  logradouro         String
+  numeroAp           String
+  complemento        String
+  cep                String
+  bairro             String
+  municipio          String
+  estado             String
+  municipioFamilia   String
+  condicaoAtual      String
+  createdAt          DateTime   @default(now()) @map("created_at")
+  updatedAt          DateTime?  @map("updated_at")
 
-  @@map("formularios")
+  aluno              Aluno      @relation(fields: [idAluno], references: [id], onDelete: Cascade)
+
+  @@map("endereco")
 }
 
-model MembroFamilia {
-  id                   Int                 @id @default(autoincrement())
-  composicaoFamiliarId Int
-  nomeFamiliar         String
-  parentesco           Parentesco
-  dataNascimento       DateTime
-  situacaoOcupacional  SituacaoOcupacional
-  rendaIndividual      Float
-  contribui            Boolean
-  composicaoFamiliar   ComposicaoFamiliar  @relation(fields: [composicaoFamiliarId], references: [id], onDelete: Cascade)
-  createdAt            DateTime            @default(now())
-  updatedAt            DateTime            @updatedAt
+model Parente {
+  id                    Int        @id @default(autoincrement())
+  nome                  String
+  parentesco            Parentesco
+  dataNasc              DateTime
+  ocupacao              Ocupacao
+  rendaIndividual       String
+  contribuicaoFamilia   String
+  createdAt             DateTime   @default(now()) @map("created_at")
+  updatedAt             DateTime?  @map("updated_at")
 
-  @@map("membros_familia")
+  composicoes           ComposicaoParentesco[]
+
+  @@map("parente")
 }
 
-model ComposicaoFamiliar {
-  id              Int             @id @default(autoincrement())
-  formularioId    Int             @unique
-  totalMembros    Int
-  formulario      Formulario      @relation(fields: [formularioId], references: [id], onDelete: Cascade)
-  membrosFamilia  MembroFamilia[]
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+model ComposicaoParentesco {
+  id         Int      @id @default(autoincrement())
+  idAluno    Int      @map("id_aluno")
+  idParente  Int      @map("id_parente")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime? @map("updated_at")
 
-  @@map("composicao_familiar")
+  aluno      Aluno   @relation(fields: [idAluno], references: [id], onDelete: Cascade)
+  parente    Parente @relation(fields: [idParente], references: [id], onDelete: Cascade)
+
+  @@map("composicao_parentesca")
 }
