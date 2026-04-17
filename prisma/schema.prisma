@@ -28,13 +28,13 @@ enum EstadoCivil {
   UNIAO_ESTAVEL
 }
 
-enum TipoMoradia {
-  PROPRIA
-  ALUGADA
-  CEDIDA
-  REPUBLICA
-  OUTRO
-}
+// enum TipoMoradia {
+//   PROPRIA
+//   ALUGADA
+//   CEDIDA
+//   REPUBLICA
+//   OUTRO
+// }
 
 enum TipoIngresso {
   SISU
@@ -49,16 +49,16 @@ enum SituacaoSaude {
   usomedicacaocontinua
 }
 
-enum Parentesco {
-  pai
-  mae
-  irmaoIrma
-  avos
-  tioTia
-  primoPrima
-  conjuge
-  outro
-}
+// enum Parentesco {
+//   pai
+//   mae
+//   irmaoIrma
+//   avos
+//   tioTia
+//   primoPrima
+//   conjuge
+//   outro
+// }
 
 enum SituacaoOcupacional {
   propietarioEmpresa
@@ -71,6 +71,54 @@ enum SituacaoOcupacional {
   bolsistaEstagiario
   desempregado
 }
+
+
+enum TipoMoradia {
+  PROPRIA
+  ALUGADA
+  CEDIDA
+  REPUBLICA
+  OUTRO
+}
+
+enum Parentesco {
+  PAI
+  MAE
+  IRMAO
+  IRMA
+  AVÔ
+  AVÓ
+  TIO
+  TIA
+  PRIMO
+  PRIMA
+  CONJUGE
+  OUTRO
+}
+
+enum Ocupacao {
+  PROPRIETARIO_EMPRESA
+  MICROEMPREENDEDOR_INDIVIDUAL
+  ASSALARIADO
+  APOSENTADO_PENSIONISTA
+  INFORMAL_AUTONOMO
+  PENSAO_ALIMENTICIA
+  ATIVIDADE_RURAL
+  BOLSISTA_ESTAGIARIO
+  DESEMPREGADO
+}
+
+model Funcionario { // GENERICO
+  id         Int        @id @default(autoincrement())
+  idAuth     Int        @unique @map("id_auth")
+  
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime?  @map("updated_at")
+
+  auth       Auth       @relation(fields: [idAuth], references: [id], onDelete: Cascade)
+
+  @@map("funcionario")
+} 
 
 model Auth {
   id         Int        @id @default(autoincrement())
@@ -109,6 +157,8 @@ model Aluno {
   deficiencia        String
   createdAt          DateTime                @default(now()) @map("created_at")
   updatedAt          DateTime?               @map("updated_at")
+
+  auth       Auth       @relation(fields: [idAuth], references: [id], onDelete: Cascade)
 
   enderecos          Endereco[]
   composicoes        ComposicaoParentesco[]
