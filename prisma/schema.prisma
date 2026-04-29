@@ -28,13 +28,13 @@ enum EstadoCivil {
   UNIAO_ESTAVEL
 }
 
-enum TipoMoradia {
-  PROPRIA
-  ALUGADA
-  CEDIDA
-  REPUBLICA
-  OUTRO
-}
+// enum TipoMoradia {
+//   PROPRIA
+//   ALUGADA
+//   CEDIDA
+//   REPUBLICA
+//   OUTRO
+// }
 
 enum TipoIngresso {
   SISU
@@ -49,16 +49,16 @@ enum SituacaoSaude {
   usomedicacaocontinua
 }
 
-enum Parentesco {
-  pai
-  mae
-  irmaoIrma
-  avos
-  tioTia
-  primoPrima
-  conjuge
-  outro
-}
+// enum Parentesco {
+//   pai
+//   mae
+//   irmaoIrma
+//   avos
+//   tioTia
+//   primoPrima
+//   conjuge
+//   outro
+// }
 
 enum SituacaoOcupacional {
   propietarioEmpresa
@@ -72,111 +72,298 @@ enum SituacaoOcupacional {
   desempregado
 }
 
-model Usuario {
-  id                Int          @id @default(autoincrement())
-  email             String       @unique
-  senha             String
-  permissao         Permissao    @default(ALUNO)
-  matricula         Int?         @unique
-  siape             Int?         @unique
-  resetToken        String?
-  resetTokenExpiry  DateTime?
-  solicitacoes      Solicitacao[]
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
 
-  @@map("usuarios")
-  @@index([permissao])
+enum TipoMoradia {
+  PROPRIA
+  ALUGADA
+  CEDIDA
+  REPUBLICA
+  OUTRO
+}
+
+enum Parentesco {
+  PAI
+  MAE
+  IRMAO
+  IRMA
+  AVÔ
+  AVÓ
+  TIO
+  TIA
+  PRIMO
+  PRIMA
+  CONJUGE
+  OUTRO
+}
+
+enum Ocupacao {
+  PROPRIETARIO_EMPRESA
+  MICROEMPREENDEDOR_INDIVIDUAL
+  ASSALARIADO
+  APOSENTADO_PENSIONISTA
+  INFORMAL_AUTONOMO
+  PENSAO_ALIMENTICIA
+  ATIVIDADE_RURAL
+  BOLSISTA_ESTAGIARIO
+  DESEMPREGADO
+}
+
+enum TipoAuxilio {
+    BOLSA
+    AUXILIO
+}
+
+enum StatusAlunoAuxilio {
+    ATIVO
+    ENCERRADO
+    SUSPENSO
+}
+
+enum TipoDocumento {
+    RG
+    CPF
+}
+
+enum StatusDocumento {
+    ATIVO
+    INATIVO
+}
+
+enum StatusSolicitacao {
+    PENDENTE
+    EM_ANALISE
+    DEFERIDO
+    INDEFERIDO
+}
+
+model Auth {
+  id          Int        @id @default(autoincrement())
+  email       String     @unique
+  senha       String
+  permissao   Permissao
+  // CAMPOS PARA RECUPERAÇÃO DE SENHA
+  resetToken      String?   @unique
+  resetTokenExpiry DateTime?
+
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime?  @map("updated_at")
+
+  aluno       Aluno?
+  funcionario Funcionario?
+
+  @@map("auth")
+}
+
+model Aluno {
+  id               Int      @id @default(autoincrement())
+  authId           Int      @unique @map("id_auth")
+
+  nome             String
+  cpf              String   @unique
+  rg               String   @unique
+  matricula        Int      @unique
+
+  emailContato     String
+  telefone         String
+
+  curso            String
+  turno            String
+  anoIngresso      Int
+  semestreAtual    Int
+
+  tipoIngresso     String
+
+  dataNasc         DateTime
+  sexo             String
+  orientacaoSexual String
+  identidadeGenero String
+  etniaRaca        String
+  estadoCivil      String
+  deficiencia      String?
+
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime? @map("updated_at")
+
+  auth             Auth     @relation(fields: [authId], references: [id], onDelete: Cascade)
+
+  enderecos        Endereco[]
+  composicoes      ComposicaoParentesco[]
+  solicitacoes     Solicitacao[]
+  documentos       Documento[]
+  auxilios         AlunoAuxilio[]
+
+  @@map("aluno")
+}
+
+model Funcionario {
+  id         Int      @id @default(autoincrement())
+  authId     Int      @unique @map("id_auth")
+
+  nome       String
+  siape      Int      @unique
+
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime? @map("updated_at")
+
+  auth        Auth          @relation(fields: [authId], references: [id], onDelete: Cascade)
+  solicitacoes Solicitacao[]
+
+  @@map("funcionarios")
+}
+
+model Endereco {
+  id               Int      @id @default(autoincrement())
+  alunoId          Int      @map("id_aluno")
+
+  tipoMoradia      TipoMoradia
+  logradouro       String
+  numero           String   @map("numero_ap")
+  complemento      String?
+
+  cep              String
+  bairro           String
+  municipio        String
+  estado           String
+
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime? @map("updated_at")
+
+  aluno            Aluno    @relation(fields: [alunoId], references: [id], onDelete: Cascade)
+
+  @@index([alunoId])
+  @@map("endereco")
+}
+
+model Parente {
+  id                    Int      @id @default(autoincrement())
+
+  nome                  String
+  parentesco            Parentesco
+  dataNasc              DateTime
+
+  ocupacao              Ocupacao
+  rendaIndividual       Float
+  contribuicaoFamilia   Boolean
+
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime? @map("updated_at")
+
+  composicoes           ComposicaoParentesco[]
+
+  @@map("parente")
+}
+
+model ComposicaoParentesco {
+  alunoId    Int @map("id_aluno")
+  parenteId  Int @map("id_parente")
+
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  aluno      Aluno   @relation(fields: [alunoId], references: [id], onDelete: Cascade)
+  parente    Parente @relation(fields: [parenteId], references: [id], onDelete: Cascade)
+
+  @@id([alunoId, parenteId])
+  @@index([parenteId])
+  @@map("composicao_parentesca")
+}
+
+model Auxilio {
+  id          Int     @id @default(autoincrement())
+
+  nome        String
+  tipoAuxilio TipoAuxilio
+  descricao   String?
+
+  alunos      AlunoAuxilio[]
+  solicitacoes Solicitacao[]
+
+  @@map("auxilios")
+}
+
+model AlunoAuxilio {
+  id         Int      @id @default(autoincrement())
+
+  alunoId    Int      @map("id_aluno")
+  auxilioId  Int      @map("id_auxilio")
+
+  dataInicio DateTime
+  dataFim    DateTime?
+
+  status     StatusAlunoAuxilio
+  observacao String?
+
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  aluno      Aluno   @relation(fields: [alunoId], references: [id], onDelete: Cascade)
+  auxilio    Auxilio @relation(fields: [auxilioId], references: [id], onDelete: Cascade)
+
+  @@unique([alunoId, auxilioId])
+  @@index([auxilioId])
+  @@map("alunos_auxilios")
 }
 
 model Solicitacao {
-  id           Int        @id @default(autoincrement())
-  usuarioId    Int
-  formularioId Int        @unique
-  usuario      Usuario    @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  formulario   Formulario @relation(fields: [formularioId], references: [id], onDelete: Cascade)
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  id            Int      @id @default(autoincrement())
 
+  alunoId       Int      @map("id_aluno")
+  auxilioId     Int      @map("id_auxilio")
+  funcionarioId Int?     @map("id_funcionario")
+
+  status        StatusSolicitacao @default(PENDENTE)
+
+  dataInicio    DateTime?
+  dataFinal     DateTime? @map("data_final_analise")
+
+  observacao    String?
+
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime? @map("updated_at")
+
+  aluno         Aluno       @relation(fields: [alunoId], references: [id], onDelete: Cascade)
+  auxilio       Auxilio     @relation(fields: [auxilioId], references: [id])
+  funcionario   Funcionario? @relation(fields: [funcionarioId], references: [id])
+
+  documentos    DocumentoSolicitacao[]
+
+  @@index([alunoId])
+  @@index([auxilioId])
+  @@index([funcionarioId])
   @@map("solicitacoes")
 }
 
-model Formulario {
-  id                   Int                 @id @default(autoincrement())
-  nomeCompleto         String
-  cpf                  String              @unique
-  rg                   String
-  dataNascimento       DateTime
-  nomeResponsavel      String?
-  sexo                 Sexo
-  orientacaoSexual     String?
-  identidadeGenero     String?
-  etniaRaca            String?
-  estadoCivil          EstadoCivil
-  deficiencia          String?
-  telefone             String
-  email                String
-  tipoMoradia          TipoMoradia
-  logradouro           String
-  numeroAp             String
-  complemento          String?
-  bairro               String
-  municipio            String
-  estado               String
-  origemFamilia        String?
-  moradiaAtual         String?
-  matricula            Int
-  curso                String
-  turno                String
-  tipoIngresso         TipoIngresso
-  recebeAux            Boolean             @default(false)
-  tipoAuxRecebido      String?
-  rendaTotal           Float
-  rendaPercapita       Float
-  moradia              Float
-  transporte           Float
-  alimentacao          Float
-  saude                Float
-  educacao             Float
-  outrasDespesas       String
-  situacaoSaude        SituacaoSaude
-  violacaoDireitos     String
-  condicaoDeslocamento String
-  gestacaoFilhos       String
-  progamasSociais      String
-  relatoPessoal        String
-  solicitacao          Solicitacao?
-  composicaoFamiliar   ComposicaoFamiliar?
-  createdAt            DateTime            @default(now())
-  updatedAt            DateTime            @updatedAt
+model Documento {
+  id         Int      @id @default(autoincrement())
 
-  @@map("formularios")
+  alunoId    Int      @map("id_aluno")
+
+  caminho    String
+  tipo       TipoDocumento @map("tipo_documento")
+
+  versao     Int
+  status     StatusDocumento
+  hash       String
+
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime? @map("updated_at")
+
+  aluno      Aluno @relation(fields: [alunoId], references: [id], onDelete: Cascade)
+  solicitacoes DocumentoSolicitacao[]
+
+  @@index([alunoId])
+  @@map("documentos")
 }
 
-model MembroFamilia {
-  id                   Int                 @id @default(autoincrement())
-  composicaoFamiliarId Int
-  nomeFamiliar         String
-  parentesco           Parentesco
-  dataNascimento       DateTime
-  situacaoOcupacional  SituacaoOcupacional
-  rendaIndividual      Float
-  contribui            Boolean
-  composicaoFamiliar   ComposicaoFamiliar  @relation(fields: [composicaoFamiliarId], references: [id], onDelete: Cascade)
-  createdAt            DateTime            @default(now())
-  updatedAt            DateTime            @updatedAt
+model DocumentoSolicitacao {
+  solicitacaoId Int @map("id_solicitacao")
+  documentoId   Int @map("id_documento")
 
-  @@map("membros_familia")
-}
+  observacao    String?
+  createdAt     DateTime @default(now()) @map("created_at")
 
-model ComposicaoFamiliar {
-  id              Int             @id @default(autoincrement())
-  formularioId    Int             @unique
-  totalMembros    Int
-  formulario      Formulario      @relation(fields: [formularioId], references: [id], onDelete: Cascade)
-  membrosFamilia  MembroFamilia[]
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  solicitacao   Solicitacao @relation(fields: [solicitacaoId], references: [id], onDelete: Cascade)
+  documento     Documento   @relation(fields: [documentoId], references: [id], onDelete: Cascade)
 
-  @@map("composicao_familiar")
+  @@id([solicitacaoId, documentoId])
+  @@index([documentoId])
+  @@map("documentos_solicitacoes")
 }
