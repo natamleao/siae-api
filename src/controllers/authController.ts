@@ -90,6 +90,7 @@ export class AuthController {
                 message: result.success
                     ? "Login realizado com sucesso"
                     : result.message,
+                token: result.token,
                 ...(result.user && { user: result.user }),
             });
         } catch (error: any) {
@@ -112,7 +113,7 @@ export class AuthController {
                     });
             }
 
-            const result = await AuthService.register(data);
+            const result = await AuthService.register(data); // TODO consertar
             const status = result.success ? 201 : 400;
 
             if (result.success && result.token) {
