@@ -3,6 +3,7 @@ import express from "express";
 import authRoutes from "./routes/authRoutes";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import funcionarioRoutes from "./routes/funcionarioRoutes"
 
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -20,6 +21,7 @@ app.use(cookieParser());
 app.use(express.json());
 
 app.use("/auth", authRoutes);
+app.use("/funcionario", funcionarioRoutes)
 
 app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
