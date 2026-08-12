@@ -1,18 +1,15 @@
-FROM node:20-alpine
+FROM node:20
 
-# Instala pnpm globalmente
-RUN npm install -g pnpm
+RUN corepack enable && corepack prepare pnpm@10.18.3 --activate
 
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml ./
+
 RUN pnpm install
 
 COPY . .
 
-RUN pnpm prisma generate
-
-# Adicionei a porta do Prisma Studio
-EXPOSE 3000 5555  
+EXPOSE 3000
 
 CMD ["pnpm", "dev"]
