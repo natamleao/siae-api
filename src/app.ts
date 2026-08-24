@@ -20,8 +20,16 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.json());
 
+app.get("/", (req, res) => {
+    res.status(200).json({
+        message: "API SIAE está rodando com sucesso! 🚀",
+        status: "online",
+        timestamp: new Date().toISOString()
+    });
+});
+
 app.use("/auth", authRoutes);
-app.use("/funcionario", funcionarioRoutes)
+app.use("/funcionario", funcionarioRoutes);
 
 app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
