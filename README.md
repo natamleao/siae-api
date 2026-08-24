@@ -140,5 +140,23 @@ Acesse: **http://localhost:5555**
 
 ---
 
+### 📚 Documentação Interativa com Swagger (OpenAPI)
+
+A API conta com documentação interativa gerada pelo Swagger com suporte a autenticação **OAuth2 (Password Flow)** e **Bearer JWT**:
+
+👉 **http://localhost:3000/docs**
+
+#### Como autenticar no Swagger com 1 clique (OAuth2):
+1. Acesse `http://localhost:3000/docs`.
+2. Clique no botão verde **Authorize 🔓** no canto superior direito.
+3. Na seção **OAuth2PasswordBearer**, informe:
+   - **username:** seu email cadastrado (ex: `admin@siae.br`)
+   - **password:** sua senha (ex: `admin123`)
+4. Clique em **Authorize** e depois em **Close**.
+5. Pronto! Todas as rotas protegidas (ex: `/funcionario/*`) já estarão autenticadas automaticamente para teste direto no navegador.
+
+---
+
 **Caso você não saiba como usar o Postman para testar requisições HTTP, veja este guia rápido:**  
 [Como usar o Postman?](https://www.youtube.com/watch?v=64-O-dDR7ic)
+
