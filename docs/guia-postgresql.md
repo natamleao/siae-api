@@ -38,7 +38,7 @@ docker compose up -d --build
 ### 4. Criar o usuário Administrador padrão (Seed)
 Execute o script de seed diretamente no container da API:
 ```bash
-docker exec -it siae-api ./node_modules/.bin/ts-node-dev prisma/seed.ts
+docker exec -it siae-api pnpm seed
 ```
 *(Saída esperada: `Admin criado com sucesso!`)*
 
