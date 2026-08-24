@@ -63,13 +63,15 @@ export class AuthController {
 
     public static async login(req: Request, res: Response): Promise<Response> {
         try {
-            const { email, password } = req.body;
+            const email = req.body.email || req.body.username;
+            const password = req.body.password || req.body.senha;
+
             if (!email || !password) {
                 return res
                     .status(400)
                     .json({
                         success: false,
-                        message: "Email e senha são obrigatórios",
+                        message: "Email/Usuário e senha são obrigatórios",
                     });
             }
 
@@ -86,6 +88,9 @@ export class AuthController {
             }
 
             return res.status(status).json({
+                access_token: result.token,
+                token_type: "bearer",
+                expires_in: 7 * 24 * 60 * 60, // 7 dias em segundos
                 success: result.success,
                 message: result.success
                     ? "Login realizado com sucesso"
