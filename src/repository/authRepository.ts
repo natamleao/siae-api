@@ -67,7 +67,7 @@ export class AuthRepository {
         nome: string;
         siape: number;
     }) {
-        return await prisma.$transaction(async (tx) => {
+        return await prisma.$transaction(async (tx: any) => {
 
             const auth = await tx.auth.create({
                 data: {

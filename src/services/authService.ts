@@ -1,10 +1,11 @@
 import bcrypt from 'bcryptjs';
 import { AuthRepository } from "../repository/authRepository";
 import jwt from 'jsonwebtoken';
-import { ForgotPasswordData, ResetPasswordData, LoginData, AuthResult } from "../models/models";
+import { ForgotPasswordData, ResetPasswordData, LoginData, RegisterData, AuthResult } from "../models/models";
 import { Auth } from '@prisma/client';
 import crypto from 'crypto';
 import { EmailService } from './emailService';
+import prisma from '../config/database';
 
 const RESET_TOKEN_EXPIRY_MINUTES = 5;
 const JWT_SECRET = process.env.JWT_SECRET || 'KEY';
@@ -90,5 +91,28 @@ export class AuthService {
         };
     }
 
+    public static async register(data: RegisterData): Promise<AuthResult> {
+        const { email, password, permissao } = data;
 
+        const existing = await AuthRepository.findAuthByEmail(email);
+        if (existing) {
+            return { success: false, message: 'Email já cadastrado' };
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const createdUser = await prisma.auth.create({
+            data: {
+                email,
+                senha: hashedPassword,
+                permissao: (permissao as any) || 'ALUNO',
+            }
+        });
+
+        return {
+            success: true,
+            message: 'Usuário cadastrado com sucesso',
+            token: generateToken(createdUser),
+            user: formatUser(createdUser)
+        };
+    }
 }

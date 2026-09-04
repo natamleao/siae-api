@@ -14,7 +14,16 @@ export interface AuthRequest extends Request {
 
 export const authenticate = (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
-        const token = req.cookies.authToken;
+        let token = req.cookies?.authToken;
+
+        const authHeader = req.headers.authorization;
+        if (!token && authHeader) {
+            if (authHeader.startsWith('Bearer ')) {
+                token = authHeader.substring(7).trim();
+            } else {
+                token = authHeader.trim();
+            }
+        }
 
         if (!token) {
             return res.status(401).json({
@@ -60,7 +69,7 @@ export const logout = (req: Request, res: Response): Response => {
 
     export const requireFuncionario = (req: AuthRequest, res: Response, next: NextFunction) => {
         if (
-            req.user?.permissao === Permissao.TECNICO || req.user?.permissao === Permissao.ASSISTENTE
+            req.user?.permissao === Permissao.TECNICO || req.user?.permissao === Permissao.ASSISTENTE || req.user?.permissao === Permissao.ADMIN  
         ) {
             next();
         } else {
