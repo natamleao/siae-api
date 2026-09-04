@@ -60,7 +60,7 @@ Certifique-se de ter as seguintes ferramentas instaladas em sua máquina:
 
 ---
 
-### ⚙️ Passo a Passo para Rodar o Projeto
+### ⚙️ Passo a Passo para Rodar o Projeto com Docker
 
 Detalhes sobre o passo a passo para rodar o servidor de desenvolvimento: [📖 Guia Completo do Banco de Dados](docs/guia-postgresql.md)
 
@@ -71,13 +71,14 @@ git clone https://github.com/devsiae-ludi/siae-api
 cd siae-api
 ```
 
-#### 2️⃣ Instalar as dependências
+#### 2️⃣ Configurar as Variáveis de Ambiente (`.env`)
+
+##### Copiar o arquivo .env-example e colar como .env
 ```bash
-pnpm install
+cp .env-example .env
 ```
 
-#### 3️⃣ Configurar as Variáveis de Ambiente (`.env`)
-Crie um arquivo `.env` na raiz do projeto:
+##### Ou criar um arquivo `.env` na raiz do projeto e colar as seguintes variáveis:
 ```env
 DATABASE_URL="postgresql://siae_user:siae_password@localhost:5432/siae_db?schema=public"
 CORS_ORIGIN=http://localhost:5173
@@ -90,48 +91,27 @@ EMAIL_USER="Email responsável por enviar os emails"
 EMAIL_PASS="abc def hji jkl"
 ```
 
-#### 4️⃣ Subir o Banco de Dados e Sincronizar o Prisma
+#### 3️⃣ Subir o Banco de Dados e Sincronizar o Prisma
 
 * **Opção A (Via Docker - Recomendado):**
   ```bash
   # Sobe o banco PostgreSQL no Docker
-  docker compose up -d postgres
+  docker compose up -d --build
 
-  # Gera o cliente Prisma e sincroniza as tabelas
-  npx prisma generate
-  npx prisma db push
+  # Para visualizar e manipular os dados no navegador:
+  docker exec -it siae-api npx prisma studio --hostname 0.0.0.0 --port 5555
 
   # Popula o banco com o usuário ADMIN padrão
-  pnpm seed
+  docker exec -it siae-api pnpm seed
   ```
-
-* **Opção B (PostgreSQL local ou rodando 100% no Docker):**
-  > Consulte o nosso [📖 Guia Completo do Banco de Dados](docs/guia-postgresql.md) para ver todos os fluxos detalhados (100% Docker, 100% Local ou com pgAdmin).
-
-#### 5️⃣ Executar o servidor de desenvolvimento
-```bash
-pnpm dev
-```
 
 A aplicação estará disponível em:
 👉 **http://localhost:3000**
 
-#### 6️⃣ Acessar o Prisma Studio (Opcional)
-Para visualizar e gerenciar o banco de dados visualmente no navegador:
-
-**No Docker**
-```bash
-docker exec -it siae-api npx prisma studio --hostname 0.0.0.0 --port 5555
-```
-
-**Localmente**
-```bash
-npx prisma studio
-```
-Acesse: **http://localhost:5555**
+* **Outras opções de como rodar o projeto**
+  > Consulte o nosso [📖 Guia Completo do Banco de Dados](docs/guia-postgresql.md) para ver outros fluxos, caso queira.
 
 ---
-
 
 ### 🔑 Credenciais Iniciais de Teste (Seed)
 * **Email:** `admin@siae.br`
