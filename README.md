@@ -12,13 +12,18 @@ Este repositório contém o código-fonte do backend para a aplicação SIAE (Si
 
 ## 🌱 Branches secundárias
 
-| Tipo | Convenção de nome | Uso |
-|------|--------------------|-----|
-| **feature/** | `feature/nome-da-funcionalidade` | Novas funcionalidades (ex.: `feature/tela-login`). |
-| **fix/** | `fix/correção-bug` | Correções de bugs ou ajustes pontuais. |
-| **hotfix/** | `hotfix/nome-do-hotfix` | Correções urgentes que precisam ir direto para `main`. |
-| **docs/** | `docs/atualizacao-readme` | Atualizações em documentação. |
-| **refactor/** | `refactor/nome-refatoracao` | Refatorações de código sem alterar comportamento. |
+Adotamos o seguinte padrão de nomenclatura para criação de branches:
+
+> **Formato:** `AÇÃO/SIAE-NUMERO_DA_TASK/descricao-resumida`  
+> **Exemplo:** `DC/SIAE-01/Aderindo-swagger`
+
+| Descrição da Ação | Ação (Prefixo) | Convenção de Nome | Exemplo | Uso |
+|-------------------|:--------------:|-------------------|---------|-----|
+| **FEATURE** | `FT` | `FT/SIAE-XXX/descricao` | `FT/SIAE-12/tela-login` | Novas funcionalidades. |
+| **REFACTORING** | `RF` | `RF/SIAE-XXX/descricao` | `RF/SIAE-45/refatorando-auth` | Refatorações de código sem alterar comportamento. |
+| **FIX** | `FX` | `FX/SIAE-XXX/descricao` | `FX/SIAE-78/ajuste-validacao` | Correções de bugs ou ajustes pontuais. |
+| **HOTFIX** | `HT` | `HT/SIAE-XXX/descricao` | `HT/SIAE-99/correcao-urgente` | Correções urgentes que precisam ir direto para `main`. |
+| **DOCUMENTATION** | `DC` | `DC/SIAE-XXX/descricao` | `DC/SIAE-01/Aderindo-swagger` | Atualizações ou adições em documentação. |
 
 ---
 
@@ -31,7 +36,8 @@ Siga o fluxo abaixo para contribuir com o projeto de forma organizada:
    ```bash
    git checkout develop
    git pull
-   git checkout -b feature/nome-da-feature
+   git checkout -b FT/SIAE-XX/criando-endpoints
+   ```
 
 2. **Faça commits incrementais e descritivos:**
 
@@ -43,58 +49,94 @@ git commit -m "feat: adiciona tela de login"
 
 5. **Quando houver uma versão estável, `develop` é mesclado em `main`.**
 
-### Pré-requisitos
+### 🛠️ Pré-requisitos
 
 Certifique-se de ter as seguintes ferramentas instaladas em sua máquina:
 
 * **Node.js:** Versão 18 ou superior.
-* **pnpm** (Gerenciador de pacotes, recomendado conforme seu lockfile) ou **npm**.
-* **TypeScript** (instalado globalmente ou via `pnpm install`).
-* **Cliente REST** (Postman, Insomnia ou Thunder Client) para testar os endpoints.
+* **pnpm:** Gerenciador de pacotes (`npm install -g pnpm`).
+* **Docker & Docker Compose** (Recomendado para rodar o banco sem complicações) **OU** PostgreSQL instalado localmente.
+* **Cliente HTTP:** Postman, Insomnia ou extensão Thunder Client (VS Code).
 
-### ⚙️ Passo a passo
+---
 
-1️⃣ Clonar o repositório
+### ⚙️ Passo a Passo para Rodar o Projeto com Docker
+
+Detalhes sobre o passo a passo para rodar o servidor de desenvolvimento: [📖 Guia Completo do Banco de Dados](docs/guia-postgresql.md)
+
+
+#### 1️⃣ Clonar o repositório
 ```bash
 git clone https://github.com/devsiae-ludi/siae-api
 cd siae-api
 ```
 
-2️⃣ Instalar as dependências
+#### 2️⃣ Configurar as Variáveis de Ambiente (`.env`)
+
+##### Copiar o arquivo .env-example e colar como .env
 ```bash
-pnpm install
+cp .env-example .env
 ```
 
-3️⃣ Criar arquivo .env na raíz
+##### Ou criar um arquivo `.env` na raiz do projeto e colar as seguintes variáveis:
+```env
+DATABASE_URL="postgresql://siae_user:siae_password@localhost:5432/siae_db?schema=public"
+CORS_ORIGIN=http://localhost:5173
+NODE_ENV=development
+JWT_SECRET="SIAEJWTUFC"
 
-    1️⃣ Configuração do Ambiente (Banco, CORS e Segurança)
-        DATABASE_URL="file:./dev.db"
-        CORS_ORIGIN=http://localhost:5173
-        NODE_ENV=development
-        JWT_SECRET="SIAEJWTUFC"
-
-    2️⃣ Variáveis de Ambiente para Envio de E-mails 
-        EMAIL_HOST=smtp.gmail.com
-        EMAIL_PORT=465
-        EMAIL_USER="Email responsável por enviar os emails"
-        EMAIL_PASS="abc def hji jkl"
-        
-[Como conseguir EMAIL_PASS?](https://www.youtube.com/watch?v=vZNdhwdW4_g)
-
-4️⃣ Configuração do Prisma
-```bash
-npx prisma generate
-npx prisma migrate dev --name init
-npx prisma db push
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=465
+EMAIL_USER="Email responsável por enviar os emails"
+EMAIL_PASS="abc def hji jkl"
 ```
 
-5️⃣ Executar o servidor de desenvolvimento
-```bash
-pnpm dev
-```
+#### 3️⃣ Subir o Banco de Dados e Sincronizar o Prisma
+
+* **Opção A (Via Docker - Recomendado):**
+  ```bash
+  # Sobe o banco PostgreSQL no Docker
+  docker compose up -d --build
+
+  # Para visualizar e manipular os dados no navegador:
+  docker exec -it siae-api npx prisma studio --hostname 0.0.0.0 --port 5555
+
+  # Popula o banco com o usuário ADMIN padrão
+  docker exec -it siae-api pnpm seed
+  ```
 
 A aplicação estará disponível em:
-👉 http://localhost:3000
+👉 **http://localhost:3000**
+
+* **Outras opções de como rodar o projeto**
+  > Consulte o nosso [📖 Guia Completo do Banco de Dados](docs/guia-postgresql.md) para ver outros fluxos, caso queira.
+
+---
+
+### 🔑 Credenciais Iniciais de Teste (Seed)
+* **Email:** `admin@siae.br`
+* **Senha:** `admin123`
+* **Permissão:** `ADMIN`
+
+---
+
+### 📚 Documentação Interativa com Swagger (OpenAPI)
+
+A API conta com documentação interativa gerada pelo Swagger com suporte a autenticação **OAuth2 (Password Flow)** e **Bearer JWT**:
+
+👉 **http://localhost:3000/docs**
+
+#### Como autenticar no Swagger com 1 clique (OAuth2):
+1. Acesse `http://localhost:3000/docs`.
+2. Clique no botão verde **Authorize 🔓** no canto superior direito.
+3. Na seção **OAuth2PasswordBearer**, informe:
+   - **username:** seu email cadastrado (ex: `admin@siae.br`)
+   - **password:** sua senha (ex: `admin123`)
+4. Clique em **Authorize** e depois em **Close**.
+5. Pronto! Todas as rotas protegidas (ex: `/funcionario/*`) já estarão autenticadas automaticamente para teste direto no navegador.
+
+---
 
 **Caso você não saiba como usar o Postman para testar requisições HTTP, veja este guia rápido:**  
 [Como usar o Postman?](https://www.youtube.com/watch?v=64-O-dDR7ic)
+
