@@ -30,39 +30,6 @@ Adotamos o seguinte padrão de nomenclatura para criação de branches:
 
 ---
 
-## 🧭 Fluxo de Desenvolvimento
-
-Siga o fluxo abaixo para contribuir com o projeto de forma organizada:
-
-1. **Crie uma nova branch a partir de `develop`:**
-
-   ```bash
-   git checkout develop
-   git pull
-   git checkout -b FT/SIAE-XX/criando-endpoints
-   ```
-
-2. **Faça commits incrementais e descritivos:**
-
-git commit -m "feat: adiciona tela de login"
-
-3. **Ao concluir, abra um Pull Request para `develop`.**
-
-4. **Após revisar e testar, o código é mesclado em `develop`.**
-
-5. **Quando houver uma versão estável, `develop` é mesclado em `main`.**
-
-### 🛠️ Pré-requisitos
-
-Certifique-se de ter as seguintes ferramentas instaladas em sua máquina:
-
-* **Node.js:** Versão 18 ou superior.
-* **pnpm:** Gerenciador de pacotes (`npm install -g pnpm`).
-* **Docker & Docker Compose** (Recomendado para rodar o banco sem complicações) **OU** PostgreSQL instalado localmente.
-* **Cliente HTTP:** Postman, Insomnia ou extensão Thunder Client (VS Code).
-
----
-
 ### ⚙️ Passo a Passo para Rodar o Projeto com Docker
 
 Detalhes sobre o passo a passo para rodar o servidor de desenvolvimento: [📖 Guia Completo do Banco de Dados](docs/guia-postgresql.md)
@@ -120,6 +87,39 @@ A aplicação estará disponível em:
 * **Email:** `admin@siae.br`
 * **Senha:** `admin123`
 * **Permissão:** `ADMIN`
+
+---
+
+## 🧭 Fluxo de Desenvolvimento
+
+Siga o fluxo abaixo para contribuir com o projeto de forma organizada:
+
+1. **Crie uma nova branch a partir de `develop`:**
+
+   ```bash
+   git checkout develop
+   git pull
+   git checkout -b FT/SIAE-XX/criando-endpoints
+   ```
+
+2. **Faça commits incrementais e descritivos:**
+
+git commit -m "feat: adiciona tela de login"
+
+3. **Ao concluir, abra um Pull Request para `develop`.**
+
+4. **Após revisar e testar, o código é mesclado em `develop`.**
+
+5. **Quando houver uma versão estável, `develop` é mesclado em `main`.**
+
+### 🛠️ Pré-requisitos
+
+Certifique-se de ter as seguintes ferramentas instaladas em sua máquina:
+
+* **Node.js:** Versão 18 ou superior.
+* **pnpm:** Gerenciador de pacotes (`npm install -g pnpm`).
+* **Docker & Docker Compose** (Recomendado para rodar o banco sem complicações) **OU** PostgreSQL instalado localmente.
+* **Cliente HTTP:** Postman, Insomnia ou extensão Thunder Client (VS Code).
 
 ---
 
