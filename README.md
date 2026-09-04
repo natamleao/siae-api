@@ -25,6 +25,9 @@ Adotamos o seguinte padrão de nomenclatura para criação de branches:
 | **HOTFIX** | `HT` | `HT/SIAE-XXX/descricao` | `HT/SIAE-99/correcao-urgente` | Correções urgentes que precisam ir direto para `main`. |
 | **DOCUMENTATION** | `DC` | `DC/SIAE-XXX/descricao` | `DC/SIAE-01/Aderindo-swagger` | Atualizações ou adições em documentação. |
 
+> [!CAUTION]
+> Os números devem está de acordo com o informado no detalhamento da task no Clickup
+
 ---
 
 ## 🧭 Fluxo de Desenvolvimento
