@@ -4,19 +4,34 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-    const senhaHash = await bcrypt.hash("admin123", 10);
+    const adminEmail = "admin@siae.br";
 
-    await prisma.auth.create({
-        data: {
-            email: "admin@siae.br",
-            senha: senhaHash,
-            permissao: "ADMIN"
-        }
+    const existingAdmin = await prisma.auth.findUnique({
+        where: { email: adminEmail }
     });
 
-    console.log("Admin criado com sucesso!");
+    if (!existingAdmin) {
+        const senhaHash = await bcrypt.hash("admin123", 10);
+
+        await prisma.auth.create({
+            data: {
+                email: adminEmail,
+                senha: senhaHash,
+                permissao: "ADMIN"
+            }
+        });
+
+        console.log("🌱 [Seed] Usuário Administrador criado com sucesso! (admin@siae.br / admin123)");
+    } else {
+        console.log("ℹ️ [Seed] Usuário Administrador já existe no banco de dados.");
+    }
 }
 
 main()
-    .catch(console.error)
-    .finally(async () => await prisma.$disconnect());
+    .catch((e) => {
+        console.error("❌ [Seed] Erro ao executar o seed:", e);
+        process.exit(1);
+    })
+    .finally(async () => {
+        await prisma.$disconnect();
+    });
