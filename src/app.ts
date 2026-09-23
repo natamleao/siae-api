@@ -46,7 +46,7 @@ app.get("/", (req, res) => {
 app.use("/auth", authRoutes);
 app.use("/funcionario", funcionarioRoutes);
 app.use("/aluno", alunoRoutes);
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
     console.log(`Servidor rodando na porta ${PORT}`);
     console.log(`Documentação Swagger disponível em: http://localhost:${PORT}/docs`);
     await checkAndSeedDatabase();
