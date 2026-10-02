@@ -1,4 +1,10 @@
-import { Sexo } from "@prisma/client";
+import {
+    Sexo,
+    OrientacaoSexual,
+    IdentidadeGenero,
+    EtniaRaca,
+    EstadoCivil,
+} from "@prisma/client";
 
 export interface RegisterAlunoData {
     nome: string;
@@ -19,10 +25,10 @@ export interface UpdateAlunoData {
     tipoIngresso?: string;
     dataNasc?: Date;
     sexo?: Sexo;
-    orientacaoSexual?: string;
-    identidadeGenero?: string;
-    etniaRaca?: string;
-    estadoCivil?: string;
+    orientacaoSexual?: OrientacaoSexual;
+    identidadeGenero?: IdentidadeGenero;
+    etniaRaca?: EtniaRaca;
+    estadoCivil?: EstadoCivil;
     deficiencia?: string;
 }
 
