@@ -17,7 +17,6 @@ enum Permissao {
 enum Sexo {
   MASCULINO
   FEMININO
-  OUTRO
   NAO_INFORMAR
 }
 
@@ -29,13 +28,6 @@ enum EstadoCivil {
   UNIAO_ESTAVEL
 }
 
-// enum TipoMoradia {
-//   PROPRIA
-//   ALUGADA
-//   CEDIDA
-//   REPUBLICA
-//   OUTRO
-// }
 
 enum TipoIngresso {
   SISU
@@ -50,16 +42,6 @@ enum SituacaoSaude {
   usomedicacaocontinua
 }
 
-// enum Parentesco {
-//   pai
-//   mae
-//   irmaoIrma
-//   avos
-//   tioTia
-//   primoPrima
-//   conjuge
-//   outro
-// }
 
 enum SituacaoOcupacional {
   propietarioEmpresa
@@ -79,6 +61,7 @@ enum TipoMoradia {
   ALUGADA
   CEDIDA
   REPUBLICA
+  ALOJAMENTO
   OUTRO
 }
 
@@ -137,6 +120,59 @@ enum StatusSolicitacao {
     INDEFERIDO
 }
 
+enum TipoResponsavel {
+    PAI
+    MAE
+    PROPRIO
+    OUTRO
+}
+
+enum IdentidadeGenero {
+  MULHER_CISGENERO
+  HOMEM_CISGENERO
+  MULHER_TRANSGENERA
+  HOMEM_TRANSGENERO
+  NAO_BINARIO
+  OUTRO
+  NAO_INFORMAR
+}
+
+enum OrientacaoSexual {
+  HETEROSEXUAL
+  HOMOSSEXUAL
+  BISEXUAL
+  PANSEXUAL
+  ASSEXUAL
+  OUTRO
+  NAO_INFORMAR
+}
+
+enum EtniaRaca {
+  BRANCO
+  PRETO
+  PARDO
+  AMARELO
+  INDIGENA
+  NAO_INFORMAR
+}
+
+enum TipoDeficiencia {
+  NAO_POSSUI
+  ALTAS_HABILIDADES_SUPERDOTACAO
+  BAIXA_VISAO
+  CEGUEIRA
+  AUDITIVA
+  FISICA
+  INTELECTUAL
+  MENTAL
+  MULTIPLA
+  SENSORIAL
+  SINDROME_ASPERGER
+  TEA
+  TRANSTORNO_GLOBAL_DESENVOLVIMENTO
+  OUTRA
+}
+
 model Auth {
   id          Int        @id @default(autoincrement())
   email       String     @unique
@@ -174,13 +210,23 @@ model Aluno {
 
   tipoIngresso     String?
 
-  dataNasc         DateTime?
-  sexo             String?
-  orientacaoSexual String?
-  identidadeGenero String?
-  etniaRaca        String?
-  estadoCivil      String?
-  deficiencia      String?
+  dataNasc         DateTime? @db.Date
+  tipoResponsavel  TipoResponsavel?
+  tipoResponsavelOutro String?
+  nomeResponsavel  String?
+
+  sexo             Sexo?
+  orientacaoSexual OrientacaoSexual?
+  orientacaoSexualOutro String?
+  identidadeGenero IdentidadeGenero?
+  identidadeGeneroOutro String?
+  etniaRaca        EtniaRaca?
+  estadoCivil      EstadoCivil?
+  tipoDeficiencia  TipoDeficiencia?
+  tipoDeficienciaOutro String?
+
+  etapaCadastro    Int? 
+  cadastroFinalizado Boolean @default(false)
 
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime? @map("updated_at")
@@ -217,6 +263,8 @@ model Endereco {
   alunoId          Int      @map("id_aluno")
 
   tipoMoradia      TipoMoradia
+  tipoMoradiaOutro String?
+
   logradouro       String
   numero           String   @map("numero_ap")
   complemento      String?

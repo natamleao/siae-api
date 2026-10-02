@@ -1,6 +1,7 @@
 import prisma from "../config/database";
 import { Auth } from "@prisma/client";
 import { Permissao } from "../enums/permissions";
+import { RegisterAlunoData } from "../models/alunoModel";
 
 export class AuthRepository {
     public static async findAuthByEmail(
@@ -87,5 +88,26 @@ export class AuthRepository {
         });
     }
 
+    public static async createAuthWithAluno(data: RegisterAlunoData) {
+        return await prisma.$transaction(async (tx: any) => {
+
+            const auth = await tx.auth.create({
+                data: {
+                    email: data.email,
+                    senha: data.senha,
+                    permissao: Permissao.ALUNO
+                }
+            })
+
+            const aluno = await tx.aluno.create({
+                data: {
+                    authId: auth.id,
+                    nome: data.nome,
+                    matricula: data.matricula
+                }
+            })
+            return { auth, aluno };
+        })
+    }
 
 }
