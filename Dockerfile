@@ -6,7 +6,6 @@ RUN npm install -g pnpm
 # Diretório da aplicação
 WORKDIR /app
 
-
 # Copia arquivos de dependência
 COPY package.json pnpm-lock.yaml ./
 
@@ -18,12 +17,12 @@ COPY . .
 
 # Gera Prisma Client
 RUN npx prisma generate
-# Compila TypeScript (opcional, mas bom para produção)
-# RUN pnpm build (para PRODUÇÃO)
+
+# Compila TypeScript
+RUN pnpm build
 
 # Expõe a porta
 EXPOSE 3000
 
 # Comando de inicialização
-# IMPORTANTE: bind em 0.0.0.0
-CMD ["pnpm", "dev"]
+CMD ["node", "dist/app.js"]
