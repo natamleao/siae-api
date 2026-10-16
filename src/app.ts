@@ -7,6 +7,7 @@ import { swaggerSpec } from "./config/swagger";
 import { checkAndSeedDatabase } from "./config/seed";
 import authRoutes from "./routes/authRoutes";
 import funcionarioRoutes from "./routes/funcionarioRoutes";
+import opcoesRoutes from "./routes/opcoesRoutes";
 
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -44,6 +45,7 @@ app.get("/", (req, res) => {
 
 app.use("/auth", authRoutes);
 app.use("/funcionario", funcionarioRoutes);
+app.use("/opcoes", opcoesRoutes);
 
 app.listen(PORT, async () => {
     console.log(`Servidor rodando na porta ${PORT}`);
