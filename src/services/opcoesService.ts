@@ -2,7 +2,7 @@ import {
   SituacaoMoradia,
   CondicaoMoradia,
   SituacaoOcupacional,
-} from "../enums/formulario";
+} from "@prisma/client";
 import {
   rotulosSituacaoMoradia,
   rotulosCondicaoMoradia,

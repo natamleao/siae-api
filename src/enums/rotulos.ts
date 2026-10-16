@@ -2,7 +2,7 @@ import {
   SituacaoMoradia,
   CondicaoMoradia,
   SituacaoOcupacional,
-} from "./formulario";
+} from "@prisma/client";
 
 export const rotulosSituacaoMoradia: Record<SituacaoMoradia, string> = {
   PROPRIA: "Própria",
