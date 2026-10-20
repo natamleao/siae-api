@@ -11,7 +11,7 @@ const RESET_TOKEN_EXPIRY_MINUTES = 5;
 const JWT_SECRET = process.env.JWT_SECRET || 'KEY';
 const JWT_EXPIRES_IN = '7d';
 
-const generateToken = (user: Auth): string => {
+export const generateToken = (user: Auth): string => {  //Antes estava sem o export nao tinha como eu usar ela, perguntar ao ruan se interfere na arq
     return jwt.sign(
         { id: user.id, email: user.email, permissao: user.permissao },
         JWT_SECRET,

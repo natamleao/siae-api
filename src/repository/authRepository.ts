@@ -1,6 +1,8 @@
 import prisma from "../config/database";
 import { Auth } from "@prisma/client";
 import { Permissao } from "../enums/permissions";
+import { RegisterAlunoData } from "../models/alunoModel";
+import { RegisterFuncionarioData } from "../models/FuncionarioModel";
 
 export class AuthRepository {
     public static async findAuthByEmail(
@@ -12,7 +14,6 @@ export class AuthRepository {
     public static async findAuthById(id: number): Promise<Auth | null> {
         return prisma.auth.findUnique({ where: { id } });
     }
-
 
     public static async updatePassword(
         id: number,
@@ -60,15 +61,8 @@ export class AuthRepository {
         });
     }
 
-    public static async createFuncionarioWithAuth(data: {
-        email: string;
-        senha: string;
-        permissao: Permissao.TECNICO | Permissao.ASSISTENTE;
-        nome: string;
-        siape: number;
-    }) {
+    public static async createFuncionarioWithAuth(data: RegisterFuncionarioData) {
         return await prisma.$transaction(async (tx: any) => {
-
             const auth = await tx.auth.create({
                 data: {
                     email: data.email,
@@ -87,5 +81,24 @@ export class AuthRepository {
         });
     }
 
+    public static async createAuthWithAluno(data: RegisterAlunoData) {
+        return await prisma.$transaction(async (tx: any) => {
+            const auth = await tx.auth.create({
+                data: {
+                    email: data.email,
+                    senha: data.senha,
+                    permissao: Permissao.ALUNO
+                }
+            })
 
+            const aluno = await tx.aluno.create({
+                data: {
+                    authId: auth.id,
+                    nome: data.nome,
+                    matricula: data.matricula
+                }
+            })
+            return { auth, aluno };
+        })
+    }
 }
