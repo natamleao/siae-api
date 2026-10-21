@@ -11,12 +11,6 @@ const swaggerOptions: swaggerJSDoc.Options = {
         name: 'Equipe SIAE',
       },
     },
-    servers: [
-      {
-        url: 'http://localhost:3000',
-        description: 'Servidor Local de Desenvolvimento',
-      },
-    ],
     components: {
       securitySchemes: {
         OAuth2PasswordBearer: {

@@ -56,28 +56,42 @@ export const logout = (req: Request, res: Response): Response => {
     });
 
 }
-    export const requireAdmin = (req: AuthRequest, res: Response, next: NextFunction) => {
-        if (req.user?.permissao === Permissao.ADMIN) {
-            next();
-        } else {
-            return res.status(403).json({
-                success: false,
-                message: 'Você não tem permissão de admin'
-            })
-        }
+export const requireAdmin = (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (req.user?.permissao === Permissao.ADMIN) {
+        next();
+    } else {
+        return res.status(403).json({
+            success: false,
+            message: 'Você não tem permissão de admin'
+        })
+    }
+}
+
+export const requireFuncionario = (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (
+        req.user?.permissao === Permissao.TECNICO || req.user?.permissao === Permissao.ASSISTENTE || req.user?.permissao === Permissao.ADMIN
+    ) {
+        next();
+    } else {
+        return res.status(403).json({
+            success: false,
+            message: 'Você não tem permissão para entrar aqui'
+        })
     }
 
-    export const requireFuncionario = (req: AuthRequest, res: Response, next: NextFunction) => {
-        if (
-            req.user?.permissao === Permissao.TECNICO || req.user?.permissao === Permissao.ASSISTENTE || req.user?.permissao === Permissao.ADMIN  
-        ) {
-            next();
-        } else {
-            return res.status(403).json({
-                success: false,
-                message: 'Você não tem permissão para entrar aqui'
-            })
-        }
-    
 };
+
+export const requireAluno = (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (
+        req.user?.permissao === Permissao.ALUNO
+    ) {
+        next();
+    } else {
+        return res.status(403).json({
+            success: false,
+            message: "Necessário ser ALUNO."
+        })
+    }
+}
+
 

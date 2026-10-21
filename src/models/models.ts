@@ -6,7 +6,7 @@ export interface LoginData {
 export interface RegisterData {
     email: string;
     password: string;
-    matricula?: number;
+    matricula?: string;
     permissao?: "ALUNO" | "TECNICO" | "ASSISTENTE";
 }
 
