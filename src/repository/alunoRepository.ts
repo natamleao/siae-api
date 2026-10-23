@@ -1,4 +1,5 @@
 import prisma from "../config/database";
+import { Prisma } from "@prisma/client";
 import { UpdateAlunoData } from "../models/alunoModel";
 
 export class AlunoRepository {
@@ -21,7 +22,7 @@ export class AlunoRepository {
         });
     }
 
-    public static async updateAluno(id: number, toUpdate: UpdateAlunoData) {
+    public static async updateAluno(id: number, toUpdate: Prisma.AlunoUpdateInput) {
         return prisma.aluno.update({
             where: { id },
             data: toUpdate
@@ -57,5 +58,7 @@ export class AlunoRepository {
             include: { auth: true }
         })
     }
+
+
 
 }
