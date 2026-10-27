@@ -42,20 +42,6 @@ enum SituacaoSaude {
   usomedicacaocontinua
 }
 
-
-enum SituacaoOcupacional {
-  propietarioEmpresa
-  microempreendedorIndividual
-  assalariado
-  aposentadoPensionista
-  informalAutonomo
-  pensaoAlimenticia
-  atividadeRural
-  bolsistaEstagiario
-  desempregado
-}
-
-
 enum TipoMoradia {
   PROPRIA
   ALUGADA
