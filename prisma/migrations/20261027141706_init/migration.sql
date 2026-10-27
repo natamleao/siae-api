@@ -14,16 +14,19 @@ CREATE TYPE "TipoIngresso" AS ENUM ('SISU', 'TRANSFERENCIA', 'OUTRO');
 CREATE TYPE "SituacaoSaude" AS ENUM ('doencasGraves', 'cronicas', 'deficiencia', 'usomedicacaocontinua');
 
 -- CreateEnum
-CREATE TYPE "SituacaoOcupacional" AS ENUM ('propietarioEmpresa', 'microempreendedorIndividual', 'assalariado', 'aposentadoPensionista', 'informalAutonomo', 'pensaoAlimenticia', 'atividadeRural', 'bolsistaEstagiario', 'desempregado');
-
--- CreateEnum
 CREATE TYPE "TipoMoradia" AS ENUM ('PROPRIA', 'ALUGADA', 'CEDIDA', 'REPUBLICA', 'ALOJAMENTO', 'OUTRO');
 
 -- CreateEnum
-CREATE TYPE "Parentesco" AS ENUM ('PAI', 'MAE', 'IRMAO', 'IRMA', 'AVÔ', 'AVÓ', 'TIO', 'TIA', 'PRIMO', 'PRIMA', 'CONJUGE', 'OUTRO');
+CREATE TYPE "CondicaoMoradia" AS ENUM ('MORA_COM_FAMILIA', 'MORA_SOZINHO', 'DIVIDE_ALUGUEL', 'MORA_COM_AMIGOS', 'OUTRO');
 
 -- CreateEnum
-CREATE TYPE "Ocupacao" AS ENUM ('PROPRIETARIO_EMPRESA', 'MICROEMPREENDEDOR_INDIVIDUAL', 'ASSALARIADO', 'APOSENTADO_PENSIONISTA', 'INFORMAL_AUTONOMO', 'PENSAO_ALIMENTICIA', 'ATIVIDADE_RURAL', 'BOLSISTA_ESTAGIARIO', 'DESEMPREGADO');
+CREATE TYPE "Parentesco" AS ENUM ('PAI', 'MAE', 'IRMAO_IRMA', 'AVO_AVA', 'TIO_TIA', 'PRIMO_PRIMA', 'CONJUGE', 'OUTRO');
+
+-- CreateEnum
+CREATE TYPE "SituacaoOcupacional" AS ENUM ('PROPRIETARIO_SOCIO_EMPRESA', 'MEI_PROFISSIONAL_LIBERAL', 'TRABALHADOR_ASSALARIADO', 'APOSENTADO_PENSIONISTA_BPC', 'TRABALHADOR_INFORMAL_AUTONOMO', 'RENDA_DE_TERCEIROS', 'TRABALHADOR_RURAL', 'BOLSISTA_ESTAGIARIO', 'DESEMPREGADO_SEGURO_DESEMPREGO');
+
+-- CreateEnum
+CREATE TYPE "ContribuiRendaFamiliar" AS ENUM ('SIM', 'NAO');
 
 -- CreateEnum
 CREATE TYPE "TipoAuxilio" AS ENUM ('BOLSA', 'AUXILIO');
@@ -38,7 +41,7 @@ CREATE TYPE "TipoDocumento" AS ENUM ('RG', 'CPF');
 CREATE TYPE "StatusDocumento" AS ENUM ('ATIVO', 'INATIVO');
 
 -- CreateEnum
-CREATE TYPE "StatusSolicitacao" AS ENUM ('PENDENTE', 'EM_ANALISE', 'DEFERIDO', 'INDEFERIDO');
+CREATE TYPE "StatusSolicitacao" AS ENUM ('RASCUNHO', 'PENDENTE', 'EM_ANALISE', 'DEFERIDO', 'INDEFERIDO');
 
 -- CreateEnum
 CREATE TYPE "TipoResponsavel" AS ENUM ('PAI', 'MAE', 'PROPRIO', 'OUTRO');
@@ -126,7 +129,10 @@ CREATE TABLE "endereco" (
     "logradouro" TEXT NOT NULL,
     "numero_ap" TEXT NOT NULL,
     "complemento" TEXT,
-    "cep" TEXT NOT NULL,
+    "origemFamilia" TEXT NOT NULL,
+    "condicaoMoradia" "CondicaoMoradia" NOT NULL,
+    "condicaoMoradiaOutro" TEXT,
+    "cep" TEXT,
     "bairro" TEXT NOT NULL,
     "municipio" TEXT NOT NULL,
     "estado" TEXT NOT NULL,
@@ -137,27 +143,37 @@ CREATE TABLE "endereco" (
 );
 
 -- CreateTable
-CREATE TABLE "parente" (
+CREATE TABLE "membros_familiares" (
     "id" SERIAL NOT NULL,
-    "nome" TEXT NOT NULL,
+    "id_aluno" INTEGER NOT NULL,
+    "nome_completo" TEXT NOT NULL,
     "parentesco" "Parentesco" NOT NULL,
-    "dataNasc" TIMESTAMP(3) NOT NULL,
-    "ocupacao" "Ocupacao" NOT NULL,
-    "rendaIndividual" DOUBLE PRECISION NOT NULL,
-    "contribuicaoFamilia" BOOLEAN NOT NULL,
+    "parentesco_outro" TEXT,
+    "data_nascimento" TIMESTAMP(3) NOT NULL,
+    "situacao_ocupacional" "SituacaoOcupacional" NOT NULL,
+    "renda_individual_mensal" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "contribui_renda_familiar" "ContribuiRendaFamiliar" NOT NULL,
+    "is_estudante" BOOLEAN NOT NULL DEFAULT false,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3),
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "parente_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "membros_familiares_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "composicao_parentesca" (
+CREATE TABLE "despesas" (
+    "id" SERIAL NOT NULL,
     "id_aluno" INTEGER NOT NULL,
-    "id_parente" INTEGER NOT NULL,
+    "moradia" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "transporte" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "alimentacao" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "saude" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "educacao" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "outras" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "composicao_parentesca_pkey" PRIMARY KEY ("id_aluno","id_parente")
+    CONSTRAINT "despesas_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -250,7 +266,10 @@ CREATE UNIQUE INDEX "funcionarios_siape_key" ON "funcionarios"("siape");
 CREATE INDEX "endereco_id_aluno_idx" ON "endereco"("id_aluno");
 
 -- CreateIndex
-CREATE INDEX "composicao_parentesca_id_parente_idx" ON "composicao_parentesca"("id_parente");
+CREATE INDEX "membros_familiares_id_aluno_idx" ON "membros_familiares"("id_aluno");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "despesas_id_aluno_key" ON "despesas"("id_aluno");
 
 -- CreateIndex
 CREATE INDEX "alunos_auxilios_id_auxilio_idx" ON "alunos_auxilios"("id_auxilio");
@@ -283,10 +302,10 @@ ALTER TABLE "funcionarios" ADD CONSTRAINT "funcionarios_id_auth_fkey" FOREIGN KE
 ALTER TABLE "endereco" ADD CONSTRAINT "endereco_id_aluno_fkey" FOREIGN KEY ("id_aluno") REFERENCES "aluno"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "composicao_parentesca" ADD CONSTRAINT "composicao_parentesca_id_aluno_fkey" FOREIGN KEY ("id_aluno") REFERENCES "aluno"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "membros_familiares" ADD CONSTRAINT "membros_familiares_id_aluno_fkey" FOREIGN KEY ("id_aluno") REFERENCES "aluno"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "composicao_parentesca" ADD CONSTRAINT "composicao_parentesca_id_parente_fkey" FOREIGN KEY ("id_parente") REFERENCES "parente"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "despesas" ADD CONSTRAINT "despesas_id_aluno_fkey" FOREIGN KEY ("id_aluno") REFERENCES "aluno"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "alunos_auxilios" ADD CONSTRAINT "alunos_auxilios_id_aluno_fkey" FOREIGN KEY ("id_aluno") REFERENCES "aluno"("id") ON DELETE CASCADE ON UPDATE CASCADE;
