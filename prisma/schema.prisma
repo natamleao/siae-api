@@ -17,7 +17,6 @@ enum Permissao {
 enum Sexo {
   MASCULINO
   FEMININO
-  OUTRO
   NAO_INFORMAR
 }
 
@@ -28,6 +27,7 @@ enum EstadoCivil {
   VIUVO
   UNIAO_ESTAVEL
 }
+
 
 enum TipoIngresso {
   SISU
@@ -42,7 +42,7 @@ enum SituacaoSaude {
   usomedicacaocontinua
 }
 
-enum SituacaoMoradia {
+enum TipoMoradia {
   PROPRIA
   ALUGADA
   CEDIDA
@@ -116,6 +116,59 @@ enum StatusSolicitacao {
   INDEFERIDO
 }
 
+enum TipoResponsavel {
+    PAI
+    MAE
+    PROPRIO
+    OUTRO
+}
+
+enum IdentidadeGenero {
+  MULHER_CISGENERO
+  HOMEM_CISGENERO
+  MULHER_TRANSGENERA
+  HOMEM_TRANSGENERO
+  NAO_BINARIO
+  OUTRO
+  NAO_INFORMAR
+}
+
+enum OrientacaoSexual {
+  HETEROSEXUAL
+  HOMOSSEXUAL
+  BISEXUAL
+  PANSEXUAL
+  ASSEXUAL
+  OUTRO
+  NAO_INFORMAR
+}
+
+enum EtniaRaca {
+  BRANCO
+  PRETO
+  PARDO
+  AMARELO
+  INDIGENA
+  NAO_INFORMAR
+}
+
+enum TipoDeficiencia {
+  NAO_POSSUI
+  ALTAS_HABILIDADES_SUPERDOTACAO
+  BAIXA_VISAO
+  CEGUEIRA
+  AUDITIVA
+  FISICA
+  INTELECTUAL
+  MENTAL
+  MULTIPLA
+  SENSORIAL
+  SINDROME_ASPERGER
+  TEA
+  TRANSTORNO_GLOBAL_DESENVOLVIMENTO
+  OUTRA
+}
+
 model Auth {
   id        Int       @id @default(autoincrement())
   email     String    @unique
@@ -154,13 +207,23 @@ model Aluno {
 
   tipoIngresso String?
 
-  dataNasc         DateTime?
-  sexo             String?
-  orientacaoSexual String?
-  identidadeGenero String?
-  etniaRaca        String?
-  estadoCivil      String?
-  deficiencia      String?
+  dataNasc         DateTime? @db.Date
+  tipoResponsavel  TipoResponsavel?
+  tipoResponsavelOutro String?
+  nomeResponsavel  String?
+
+  sexo             Sexo?
+  orientacaoSexual OrientacaoSexual?
+  orientacaoSexualOutro String?
+  identidadeGenero IdentidadeGenero?
+  identidadeGeneroOutro String?
+  etniaRaca        EtniaRaca?
+  estadoCivil      EstadoCivil?
+  tipoDeficiencia  TipoDeficiencia?
+  tipoDeficienciaOutro String?
+
+  etapaCadastro    Int? 
+  cadastroFinalizado Boolean @default(false)
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @map("updated_at")
@@ -196,14 +259,15 @@ model Funcionario {
 model Endereco {
   id      Int @id @default(autoincrement())
   alunoId Int @map("id_aluno")
+  tipoMoradia      TipoMoradia
+  tipoMoradiaOutro String?
 
-  situacaoMoradia      SituacaoMoradia
-  situacaoMoradiaOutro String?
-  logradouro           String
-  numero               String          @map("numero_ap")
-  complemento          String?
-
+  logradouro       String
+  numero           String   @map("numero_ap")
+  complemento      String?
+  
   origemFamilia        String
+  
   condicaoMoradia      CondicaoMoradia
   condicaoMoradiaOutro String?
 
