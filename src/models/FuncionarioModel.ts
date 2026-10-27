@@ -29,7 +29,7 @@ export interface FuncionarioPerfilResponse {
 export interface AlunoListResponse {
     id: number;
     nome: string;
-    matricula: number; //Gabriel lembrar trocar aqui 8999
+    matricula: string;
     email: string;
     curso?: string;
     turno?: string;
