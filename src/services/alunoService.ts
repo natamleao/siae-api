@@ -1,5 +1,4 @@
 import { IdentificacaoPessoalData, RegisterAlunoData } from "../models/alunoModel";
-import { RegisterAlunoData } from "../models/alunoModel";
 import { UpdateAlunoData } from "../models/alunoModel";
 import { AlunoRepository } from "../repository/alunoRepository";
 import { AuthRepository } from "../repository/authRepository";
