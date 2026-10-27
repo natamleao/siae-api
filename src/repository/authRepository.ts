@@ -2,6 +2,7 @@ import prisma from "../config/database";
 import { Auth } from "@prisma/client";
 import { Permissao } from "../enums/permissions";
 import { RegisterAlunoData } from "../models/alunoModel";
+import { RegisterFuncionarioData } from "../models/FuncionarioModel";
 
 export class AuthRepository {
     public static async findAuthByEmail(
@@ -89,17 +90,6 @@ export class AuthRepository {
                     permissao: Permissao.ALUNO
                 }
             })
-
-            const aluno = await tx.aluno.create({
-                data: {
-                    authId: auth.id,
-                    nome: data.nome,
-                    matricula: data.matricula
-                }
-            })
-            return { auth, aluno };
-        })
-    }
 
             const aluno = await tx.aluno.create({
                 data: {
