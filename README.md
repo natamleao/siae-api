@@ -112,6 +112,23 @@ git commit -m "feat: adiciona tela de login"
 
 5. **Quando houver uma versão estável, `develop` é mesclado em `main`.**
 
+6. **Quando precisar atualizar o banco de dados:**
+
+```bash
+# Aplica as migrações e cria novas tabelas
+npx prisma migrate dev --name descricao_da_alteracao
+
+# Atualiza o cliente TypeScript baseado no banco
+pnpm prisma generate
+```
+
+### Ao trocar de branch
+O fluxo correto é:
+
+1. Faça `git checkout` para a outra branch.
+2. Rode `npx prisma migrate dev`.
+3. O Prisma vai ver quais migrations daquela branch ainda não foram aplicadas ao banco e vai aplicá-las na ordem correta .
+
 ### 🛠️ Pré-requisitos
 
 Certifique-se de ter as seguintes ferramentas instaladas em sua máquina:
@@ -143,3 +160,12 @@ A API conta com documentação interativa gerada pelo Swagger com suporte a aute
 **Caso você não saiba como usar o Postman para testar requisições HTTP, veja este guia rápido:**  
 [Como usar o Postman?](https://www.youtube.com/watch?v=64-O-dDR7ic)
 
+## Problemas
+
+### ⚠️ There might be data loss when applying the changes:
+Quando ocorre o erro: `⚠️ There might be data loss when applying the changes` ao rodar a api, é ocasionado quando o schema atual da branch não contém mais alguns valores de enum que ainda existem no banco de dados (que foi criado/sincronizado por outra branch) 
+Se não importa em perder os dados locais:
+```bash
+docker compose run --rm api npx prisma migrate reset --force
+```
+- Isso irá resetar o banco e aplicar a migration da branch atual.

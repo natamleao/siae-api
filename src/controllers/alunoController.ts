@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { AlunoService } from '../services/alunoService';
 import { AuthRequest } from "../middleware/authMiddleware";
+import { IdentificacaoPessoalData } from '../models/alunoModel';
 
 export class AlunoController {
     public static async register(req: Request, res: Response): Promise<Response> {
@@ -159,6 +160,62 @@ export class AlunoController {
             return res
                 .status(status)
                 .json(result);
+        } catch (error: any) {
+            return res.status(500).json({ success: false, message: error.message });
+        }
+    }
+
+    public static async salvarIdentificacaoPessoal(req: AuthRequest, res: Response): Promise<Response> {
+        try {
+            const authId = req.user!.id;
+            const idTranslate = await AlunoService.getAlunoIdByAuthId(authId)
+
+            if (!idTranslate.success || idTranslate.alunoId === undefined) {
+                return res.status(404).json({
+                    success: false,
+                    message: idTranslate.message || "Aluno não encontrado."
+                })
+            }
+
+            const alunoId = idTranslate.alunoId;
+
+            const {
+                nome,
+                cpf,
+                rg,
+                dataNasc,
+                telefone,
+                tipoResponsavel,
+                tipoResponsavelOutro,
+                nomeResponsavel,
+                sexo,
+                identidadeGenero,
+                identidadeGeneroOutro,
+                orientacaoSexual,
+                orientacaoSexualOutro,
+                etniaRaca,
+                estadoCivil,
+                tipoDeficiencia,
+                tipoDeficienciaOutro
+            } = req.body;
+
+
+            const dados: IdentificacaoPessoalData = {
+                nome, cpf, rg, dataNasc, telefone,
+                tipoResponsavel, tipoResponsavelOutro, nomeResponsavel,
+                sexo, identidadeGenero, identidadeGeneroOutro,
+                orientacaoSexual, orientacaoSexualOutro,
+                etniaRaca, estadoCivil, tipoDeficiencia, tipoDeficienciaOutro
+            };
+
+            const result = await AlunoService.salvarIdentificacaoPessoal(alunoId, dados);
+
+
+            const status = result.success ? 200 : 400
+
+            return res
+                .status(status)
+                .json(result)
         } catch (error: any) {
             return res.status(500).json({ success: false, message: error.message });
         }

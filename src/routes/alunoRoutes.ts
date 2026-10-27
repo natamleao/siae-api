@@ -246,4 +246,88 @@ router.get("/matricula/:matricula", authenticate, requireFuncionario, AlunoContr
  */
 router.get("/:id", authenticate, requireFuncionario, AlunoController.getAlunoById);
 
+/**
+ * @openapi
+ * /aluno/identificacao-pessoal:
+ *   patch:
+ *     summary: Salvar a Etapa 1 do cadastro (Identificação Pessoal e Contato) do aluno logado
+ *     tags: [Alunos]
+ *     description: >
+ *       Salva os dados da Etapa 1. Todos os campos são opcionais (rascunho, "Salvar e continuar depois"),
+ *       e só os campos enviados são validados e atualizados. CPF, RG e telefone aceitam máscara,
+ *       mas são gravados apenas com números. A etapa atual (`etapaCadastro`) é calculada pelo
+ *       backend e nunca regride. Quando o valor escolhido for "outro", o campo de texto
+ *       correspondente é obrigatório; nos demais casos, esse texto é limpo.
+ *     security:
+ *       - OAuth2PasswordBearer: []
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nome: { type: string, description: "Apenas letras e espaços", example: "João da Silva" }
+ *               cpf: { type: string, description: "Aceita máscara; validado pelos dígitos verificadores", example: "529.982.247-25" }
+ *               rg: { type: string, description: "Letras e números; aceita ponto e hífen", example: "12.345.678-9" }
+ *               dataNasc: { type: string, description: "Formato DD/MM/AAAA; entre 14 e 100 anos, sem datas futuras", example: "15/03/2005" }
+ *               telefone: { type: string, description: "DDD + número; aceita máscara", example: "(88) 91234-5678" }
+ *               tipoResponsavel:
+ *                 type: string
+ *                 enum: [PAI, MAE, PROPRIO, OUTRO]
+ *               tipoResponsavelOutro: { type: string, description: "Obrigatório quando tipoResponsavel for OUTRO", example: "Tio" }
+ *               nomeResponsavel: { type: string, description: "Apenas letras e espaços", example: "Maria da Silva" }
+ *               sexo:
+ *                 type: string
+ *                 enum: [MASCULINO, FEMININO, NAO_INFORMAR]
+ *               identidadeGenero:
+ *                 type: string
+ *                 enum: [MULHER_CISGENERO, HOMEM_CISGENERO, MULHER_TRANSGENERA, HOMEM_TRANSGENERO, NAO_BINARIO, OUTRO, NAO_INFORMAR]
+ *               identidadeGeneroOutro: { type: string, description: "Obrigatório quando identidadeGenero for OUTRO" }
+ *               orientacaoSexual:
+ *                 type: string
+ *                 enum: [HETEROSEXUAL, HOMOSSEXUAL, BISEXUAL, PANSEXUAL, ASSEXUAL, OUTRO, NAO_INFORMAR]
+ *               orientacaoSexualOutro: { type: string, description: "Obrigatório quando orientacaoSexual for OUTRO" }
+ *               etniaRaca:
+ *                 type: string
+ *                 enum: [BRANCO, PRETO, PARDO, AMARELO, INDIGENA, NAO_INFORMAR]
+ *               estadoCivil:
+ *                 type: string
+ *                 enum: [SOLTEIRO, CASADO, DIVORCIADO, VIUVO, UNIAO_ESTAVEL]
+ *               tipoDeficiencia:
+ *                 type: string
+ *                 enum: [NAO_POSSUI, ALTAS_HABILIDADES_SUPERDOTACAO, BAIXA_VISAO, CEGUEIRA, AUDITIVA, FISICA, INTELECTUAL, MENTAL, MULTIPLA, SENSORIAL, SINDROME_ASPERGER, TEA, TRANSTORNO_GLOBAL_DESENVOLVIMENTO, OUTRA]
+ *               tipoDeficienciaOutro: { type: string, description: "Obrigatório quando tipoDeficiencia for OUTRA (atenção: OUTRA, não OUTRO)" }
+ *     responses:
+ *       200:
+ *         description: Dados salvos com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 message: { type: string, example: "Atualizado com sucesso." }
+ *                 data:
+ *                   type: object
+ *                   description: Aluno atualizado, incluindo etapaCadastro e cadastroFinalizado
+ *       400:
+ *         description: Dado inválido (CPF, RG, nome, data, telefone, opção fora da lista, campo "Outro" ausente) ou CPF/RG já usado por outro aluno
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: false }
+ *                 message: { type: string, example: "CPF inválido." }
+ *       401:
+ *         description: Não autenticado (Token ausente ou inválido)
+ *       403:
+ *         description: Acesso negado (Requer permissão de ALUNO)
+ *       404:
+ *         description: Aluno não encontrado
+ */
+router.patch("/identificacao-pessoal", authenticate, requireAluno, AlunoController.salvarIdentificacaoPessoal);
+
 export default router;

@@ -38,6 +38,5 @@ Thumbs.db
 *.pid.lock
 
 *.db
-*.sqlite
-*.toml
-*.sql
+# *.toml
+# *.sql

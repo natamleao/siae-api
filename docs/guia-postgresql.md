@@ -49,6 +49,18 @@ docker exec -it siae-api npx prisma studio --hostname 0.0.0.0 --port 5555
 ```
 Acesse no seu navegador: **[http://localhost:5555](http://localhost:5555)**
 
+### Verificar conexão com banco de dados (manualmente)
+```bash
+docker exec -it siae-postgres psql -U siae_user -d siae_db -c "SELECT 1;"
+```
+- Se funcionar, você verá algo como:
+```text
+ ?column? 
+----------
+        1
+(1 row)
+```
+
 ---
 
 ## 💻 Fluxo 2: Rodando 100% Local (PostgreSQL nativo na máquina - SEM DOCKER)
