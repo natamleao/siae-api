@@ -9,6 +9,7 @@ import authRoutes from "./routes/authRoutes";
 import funcionarioRoutes from "./routes/funcionarioRoutes";
 import alunoRoutes from "./routes/alunoRoutes";
 import solicitacaoRoutes from "./routes/solicitacaoRoutes";
+import auxilioRoutes from "./routes/auxilioRoutes";
 
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -45,10 +46,12 @@ app.get("/", (req, res) => {
 });
 
 //ROTAS
+
 app.use("/auth", authRoutes);
 app.use("/funcionario", funcionarioRoutes);
 app.use("/aluno", alunoRoutes);
 app.use("/solicitacao", solicitacaoRoutes);
+app.use("/auxilio", auxilioRoutes);
 
 app.listen(PORT, async () => {
     console.log(`Servidor rodando na porta ${PORT}`);
