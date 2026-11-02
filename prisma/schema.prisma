@@ -260,6 +260,9 @@ model Endereco {
   id      Int @id @default(autoincrement())
   alunoId Int @unique @map("id_aluno")
 
+  tipoMoradia      TipoMoradia
+  tipoMoradiaOutro String?
+
   logradouro       String
   numero           String   @map("numero_ap")
   complemento      String?
@@ -269,7 +272,7 @@ model Endereco {
   condicaoMoradia      CondicaoMoradia
   condicaoMoradiaOutro String?
 
-  cep       String?
+//   cep       String? //deixar comentado para casos futuros
   bairro    String
   municipio String
   estado    String
