@@ -6,6 +6,34 @@ const router = Router();
 
 /**
  * @openapi
+ * /solicitacao:
+ *   post:
+ *     summary: Iniciar uma nova solicitação de auxílio (cria rascunho)
+ *     tags: [Solicitação]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - auxilioId
+ *             properties:
+ *               auxilioId:
+ *                 type: integer
+ *                 example: 1
+ *     responses:
+ *       201:
+ *         description: Solicitação criada em estado de rascunho
+ *       200:
+ *         description: Rascunho anterior recuperado
+ */
+router.post("/", authenticate, requireAluno, SolicitacaoController.iniciarSolicitacao);
+
+/**
+ * @openapi
  * /solicitacao/{id}/endereco:
  *   post:
  *     summary: Salvar ou atualizar endereço do aluno no fluxo da solicitação (Passo 2/8)
@@ -25,16 +53,17 @@ const router = Router();
  *           schema:
  *             type: object
  *             required:
- *               - situacaoMoradia
+ *               - tipoMoradia
  *               - condicaoMoradia
  *               - logradouro
  *               - numero
  *               - bairro
  *               - municipio
  *               - estado
+ *               - origemFamilia
  *             properties:
- *               situacaoMoradia: { type: string, example: "PROPRIA" }
- *               situacaoMoradiaOutro: { type: string, nullable: true, example: null }
+ *               tipoMoradia: { type: string, example: "PROPRIA" }
+ *               tipoMoradiaOutro: { type: string, nullable: true, example: null }
  *               condicaoMoradia: { type: string, example: "MORA_COM_FAMILIA" }
  *               condicaoMoradiaOutro: { type: string, nullable: true, example: null }
  *               logradouro: { type: string, example: "Rua das Flores" }
@@ -43,7 +72,7 @@ const router = Router();
  *               bairro: { type: string, example: "Centro" }
  *               municipio: { type: string, example: "Natal" }
  *               estado: { type: string, example: "RN" }
- *               cep: { type: string, nullable: true, example: "59000-000" }
+ *               origemFamilia: {type: string, example: "Limoeiro do Norte"}
  *     responses:
  *       200:
  *         description: Endereço salvo com sucesso
