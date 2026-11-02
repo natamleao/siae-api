@@ -1,8 +1,8 @@
-import { SituacaoMoradia, CondicaoMoradia } from "@prisma/client";
+import { TipoMoradia, CondicaoMoradia } from "@prisma/client";
 
 export interface SalvarEnderecoDTO {
-  situacaoMoradia: SituacaoMoradia;
-  situacaoMoradiaOutro?: string | null;
+  tipoMoradia: TipoMoradia;
+  tipoMoradiaOutro?: string | null;
   condicaoMoradia: CondicaoMoradia;
   condicaoMoradiaOutro?: string | null;
   logradouro: string;
@@ -11,6 +11,6 @@ export interface SalvarEnderecoDTO {
   bairro: string;
   municipio: string;
   estado: string;
-  cep?: string | null;
-  origemFamilia: string | null;
+//   cep?: string | null; //deixar comentado para casos futuros
+  origemFamilia: string;
 }

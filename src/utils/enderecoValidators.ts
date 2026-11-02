@@ -1,4 +1,4 @@
-import { SituacaoMoradia, CondicaoMoradia } from "@prisma/client";
+import { TipoMoradia, CondicaoMoradia } from "@prisma/client";
 
 export const UFS_BRASIL = [
   "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO",
@@ -10,8 +10,8 @@ export function isUfValida(uf: string): boolean {
   return UFS_BRASIL.includes(uf.toUpperCase() as any);
 }
 
-export function isSituacaoMoradiaValida(valor: any): valor is SituacaoMoradia {
-  return Object.values(SituacaoMoradia).includes(valor);
+export function isTipoMoradiaValida(valor: any): valor is TipoMoradia {
+  return Object.values(TipoMoradia).includes(valor);
 }
 
 export function isCondicaoMoradiaValida(valor: any): valor is CondicaoMoradia {

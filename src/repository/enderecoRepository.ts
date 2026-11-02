@@ -6,8 +6,8 @@ export class EnderecoRepository {
     return prisma.endereco.upsert({
       where: { alunoId },
       update: {
-        situacaoMoradia: data.situacaoMoradia,
-        situacaoMoradiaOutro: data.situacaoMoradiaOutro,
+        tipoMoradia: data.tipoMoradia,
+        tipoMoradiaOutro: data.tipoMoradiaOutro,
         condicaoMoradia: data.condicaoMoradia,
         condicaoMoradiaOutro: data.condicaoMoradiaOutro,
         logradouro: data.logradouro,
@@ -16,13 +16,13 @@ export class EnderecoRepository {
         bairro: data.bairro,
         municipio: data.municipio,
         estado: data.estado,
-        cep: data.cep,
+        // cep: data.cep, //deixar comentado para casos futuros
         origemFamilia: data.origemFamilia,
       },
       create: {
         alunoId,
-        situacaoMoradia: data.situacaoMoradia,
-        situacaoMoradiaOutro: data.situacaoMoradiaOutro,
+        tipoMoradia: data.tipoMoradia,
+        tipoMoradiaOutro: data.tipoMoradiaOutro,
         condicaoMoradia: data.condicaoMoradia,
         condicaoMoradiaOutro: data.condicaoMoradiaOutro,
         logradouro: data.logradouro,
@@ -31,7 +31,7 @@ export class EnderecoRepository {
         bairro: data.bairro,
         municipio: data.municipio,
         estado: data.estado,
-        cep: data.cep,
+        // cep: data.cep, //deixar comentado para casos futuros
         origemFamilia: data.origemFamilia,
       },
     });

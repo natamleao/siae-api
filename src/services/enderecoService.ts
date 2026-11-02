@@ -1,8 +1,8 @@
-import { SituacaoMoradia, CondicaoMoradia } from "@prisma/client";
+import { TipoMoradia, CondicaoMoradia } from "@prisma/client";
 import { EnderecoRepository } from "../repository/enderecoRepository";
 import { SolicitacaoRepository } from "../repository/solicitacaoRepository";
 import { SalvarEnderecoDTO } from "../models/enderecoModel";
-import { isUfValida, isSituacaoMoradiaValida, isCondicaoMoradiaValida } from "../utils/enderecoValidators";
+import { isUfValida, isTipoMoradiaValida, isCondicaoMoradiaValida } from "../utils/enderecoValidators";
 
 export class EnderecoService {
   public static async salvarEnderecoSolicitacao(
@@ -21,7 +21,7 @@ export class EnderecoService {
     }
 
     // 2. Validar campos obrigatórios de endereço
-    if (!dados.logradouro || !dados.numero || !dados.bairro || !dados.municipio || !dados.estado) {
+    if (!dados.logradouro || !dados.numero || !dados.bairro || !dados.municipio || !dados.estado || !dados.origemFamilia) {
       return { success: false, statusCode: 400, message: "Campos obrigatórios de endereço não preenchidos." };
     }
 
@@ -31,22 +31,22 @@ export class EnderecoService {
     }
 
     // 4. Validar Enums
-    if (!isSituacaoMoradiaValida(dados.situacaoMoradia)) {
-      return { success: false, statusCode: 400, message: "Situação de moradia inválida." };
+    if (!isTipoMoradiaValida(dados.tipoMoradia)) {
+      return { success: false, statusCode: 400, message: "Tipo de moradia inválido." };
     }
 
     if (!isCondicaoMoradiaValida(dados.condicaoMoradia)) {
       return { success: false, statusCode: 400, message: "Condição de moradia inválida." };
     }
 
-    // 5. Regra: campos ...Outro só existem se o enum for OUTRO
-    const situacaoMoradiaOutro =
-      dados.situacaoMoradia === SituacaoMoradia.OUTRO
-        ? dados.situacaoMoradiaOutro?.trim() || null
+    // 5. Regra: campos ...Outro só existem se o respectivo enum for OUTRO
+    const tipoMoradiaOutro =
+      dados.tipoMoradia === TipoMoradia.OUTRO
+        ? dados.tipoMoradiaOutro?.trim() || null
         : null;
 
-    if (dados.situacaoMoradia === SituacaoMoradia.OUTRO && !situacaoMoradiaOutro) {
-      return { success: false, statusCode: 400, message: "Descreva a situação de moradia no campo outro." };
+    if (dados.tipoMoradia === TipoMoradia.OUTRO && !tipoMoradiaOutro) {
+      return { success: false, statusCode: 400, message: "Descreva o tipo de moradia no campo outro." };
     }
 
     const condicaoMoradiaOutro =
@@ -61,10 +61,11 @@ export class EnderecoService {
     const payloadTratado: SalvarEnderecoDTO = {
       ...dados,
       estado: dados.estado.toUpperCase(),
-      situacaoMoradiaOutro,
+      tipoMoradiaOutro,
       condicaoMoradiaOutro,
       complemento: dados.complemento?.trim() || null,
-      cep: dados.cep?.trim() || null,
+      // cep: dados.cep?.trim() || null, //deixar comentado para casos futuros
+      origemFamilia: dados.origemFamilia.trim(),
     };
 
     // 6. Upsert no banco
