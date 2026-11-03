@@ -3,7 +3,7 @@ import {
   CondicaoMoradia,
   SituacaoOcupacional,
 } from "@prisma/client";
-
+// ADICIONAR O RESTANTE DOS ENUMS
 export const rotulosSituacaoMoradia: Record<SituacaoMoradia, string> = {
   PROPRIA: "Própria",
   ALUGADA: "Alugada",
