@@ -1,10 +1,8 @@
 import {
-  SituacaoMoradia,
   CondicaoMoradia,
   SituacaoOcupacional,
 } from "@prisma/client";
 import {
-  rotulosSituacaoMoradia,
   rotulosCondicaoMoradia,
   rotulosSituacaoOcupacional,
 } from "../enums/rotulos";
@@ -23,7 +21,6 @@ function enumParaOpcoes<T extends string>(
 export class OpcoesService {
   static obterOpcoesFormulario(): OpcoesFormularioResponse {
     return {
-      situacoesMoradia: enumParaOpcoes(SituacaoMoradia, rotulosSituacaoMoradia),
       condicoesMoradia: enumParaOpcoes(CondicaoMoradia, rotulosCondicaoMoradia),
       situacoesOcupacionais: enumParaOpcoes(
         SituacaoOcupacional,
