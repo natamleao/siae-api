@@ -7,6 +7,7 @@ import { swaggerSpec } from "./config/swagger";
 import { checkAndSeedDatabase } from "./config/seed";
 import authRoutes from "./routes/authRoutes";
 import funcionarioRoutes from "./routes/funcionarioRoutes";
+import opcoesRoutes from "./routes/opcoesRoutes";
 import alunoRoutes from "./routes/alunoRoutes";
 import solicitacaoRoutes from "./routes/solicitacaoRoutes";
 import auxilioRoutes from "./routes/auxilioRoutes";
@@ -49,6 +50,7 @@ app.get("/", (req, res) => {
 
 app.use("/auth", authRoutes);
 app.use("/funcionario", funcionarioRoutes);
+app.use("/opcoes", opcoesRoutes);
 app.use("/aluno", alunoRoutes);
 app.use("/solicitacao", solicitacaoRoutes);
 app.use("/auxilio", auxilioRoutes);
