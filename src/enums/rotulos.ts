@@ -1,17 +1,8 @@
 import {
-  SituacaoMoradia,
   CondicaoMoradia,
   SituacaoOcupacional,
 } from "@prisma/client";
 // ADICIONAR O RESTANTE DOS ENUMS
-export const rotulosSituacaoMoradia: Record<SituacaoMoradia, string> = {
-  PROPRIA: "Própria",
-  ALUGADA: "Alugada",
-  CEDIDA: "Cedida",
-  REPUBLICA: "República",
-  ALOJAMENTO: "Alojamento",
-  OUTRO: "Outro",
-};
 
 export const rotulosCondicaoMoradia: Record<CondicaoMoradia, string> = {
   MORA_COM_FAMILIA: "Mora com a família",
