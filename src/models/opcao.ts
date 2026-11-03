@@ -4,7 +4,6 @@ export interface Opcao {
 }
 
 export interface OpcoesFormularioResponse {
-  situacoesMoradia: Opcao[];
   condicoesMoradia: Opcao[];
   situacoesOcupacionais: Opcao[];
 }
