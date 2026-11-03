@@ -230,7 +230,7 @@ model Aluno {
 
   auth Auth @relation(fields: [authId], references: [id], onDelete: Cascade)
 
-  enderecos         Endereco[]
+  enderecos         Endereco?
   membrosFamiliares MembroFamiliar[]
   despesa           Despesa?
   solicitacoes      Solicitacao[]
@@ -258,7 +258,8 @@ model Funcionario {
 
 model Endereco {
   id      Int @id @default(autoincrement())
-  alunoId Int @map("id_aluno")
+  alunoId Int @unique @map("id_aluno")
+
   tipoMoradia      TipoMoradia
   tipoMoradiaOutro String?
 
@@ -271,7 +272,7 @@ model Endereco {
   condicaoMoradia      CondicaoMoradia
   condicaoMoradiaOutro String?
 
-  cep       String?
+//   cep       String? //deixar comentado para casos futuros
   bairro    String
   municipio String
   estado    String
