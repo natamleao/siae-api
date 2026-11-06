@@ -209,4 +209,92 @@ router.post("/:id/situacoes-vida", authenticate, requireAluno, SolicitacaoContro
 router.put("/:id/situacoes-vida", authenticate, requireAluno, SolicitacaoController.salvarSituacoesVida);
 router.get("/:id/situacoes-vida", authenticate, requireAluno, SolicitacaoController.obterSituacoesVida);
 
+/**
+ * @openapi
+ * /solicitacao/{id}/relato:
+ *   post:
+ *     summary: Salvar ou atualizar o relato pessoal da solicitação (Passo 7/8)
+ *     tags: [Solicitação]
+ *     description: >
+ *       Salva o relato pessoal / texto explicativo da solicitação de auxílio.
+ *       O campo é obrigatório e aceita texto livre de até 2000 caracteres.
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: ID da solicitação
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - relato
+ *             properties:
+ *               relato:
+ *                 type: string
+ *                 maxLength: 2000
+ *                 description: Texto explicativo com os detalhes da situação e motivos da solicitação
+ *                 example: "Sou estudante do curso de Engenharia de Software e resido longe da universidade..."
+ *     responses:
+ *       200:
+ *         description: Relato pessoal salvo com sucesso
+ *       400:
+ *         description: Texto não informado ou excedeu 2000 caracteres
+ *       403:
+ *         description: Não autorizado a alterar esta solicitação
+ *       404:
+ *         description: Solicitação não encontrada
+ *   put:
+ *     summary: Atualizar o relato pessoal da solicitação (Passo 7/8)
+ *     tags: [Solicitação]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: ID da solicitação
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/paths/~1solicitacao~1{id}~1relato/post/requestBody/content/application~1json/schema'
+ *     responses:
+ *       200:
+ *         description: Relato pessoal atualizado com sucesso
+ *       400:
+ *         description: Texto não informado ou excedeu 2000 caracteres
+ *       403:
+ *         description: Não autorizado a alterar esta solicitação
+ *       404:
+ *         description: Solicitação não encontrada
+ *   get:
+ *     summary: Obter o relato pessoal da solicitação (Passo 7/8)
+ *     tags: [Solicitação]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: ID da solicitação
+ *     responses:
+ *       200:
+ *         description: Relato pessoal recuperado com sucesso
+ *       403:
+ *         description: Não autorizado a visualizar esta solicitação
+ *       404:
+ *         description: Solicitação não encontrada
+ */
+router.post("/:id/relato", authenticate, requireAluno, SolicitacaoController.salvarRelato);
+router.put("/:id/relato", authenticate, requireAluno, SolicitacaoController.salvarRelato);
+router.get("/:id/relato", authenticate, requireAluno, SolicitacaoController.obterRelato);
 export default router;

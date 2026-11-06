@@ -146,4 +146,62 @@ export class SolicitacaoController {
       return res.status(500).json({ success: false, message: error.message });
     }
   }
+
+  public static async salvarRelato(req: AuthRequest, res: Response): Promise<Response> {
+    try {
+      const authId = req.user!.id;
+      const solicitacaoId = Number(req.params.id);
+
+      if (isNaN(solicitacaoId) || solicitacaoId <= 0) {
+        return res.status(400).json({ success: false, message: "ID de solicitação inválido." });
+      }
+
+      const aluno = await AlunoRepository.findAlunoByAuthId(authId);
+      if (!aluno) {
+        return res.status(404).json({ success: false, message: "Aluno não encontrado." });
+      }
+
+      const relato = req.body.relato ?? req.body.relatoPessoal ?? req.body.texto;
+
+      const result = await SolicitacaoService.salvarRelato(
+        solicitacaoId,
+        aluno.id,
+        relato
+      );
+
+      return res.status(result.statusCode).json({
+        success: result.success,
+        message: result.message,
+        data: result.data,
+      });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  public static async obterRelato(req: AuthRequest, res: Response): Promise<Response> {
+    try {
+      const authId = req.user!.id;
+      const solicitacaoId = Number(req.params.id);
+
+      if (isNaN(solicitacaoId) || solicitacaoId <= 0) {
+        return res.status(400).json({ success: false, message: "ID de solicitação inválido." });
+      }
+
+      const aluno = await AlunoRepository.findAlunoByAuthId(authId);
+      if (!aluno) {
+        return res.status(404).json({ success: false, message: "Aluno não encontrado." });
+      }
+
+      const result = await SolicitacaoService.obterRelato(solicitacaoId, aluno.id);
+
+      return res.status(result.statusCode).json({
+        success: result.success,
+        message: result.message,
+        data: result.data,
+      });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+  }
 }
