@@ -3,9 +3,10 @@ import { AuthRequest } from "../middleware/authMiddleware";
 import { AlunoRepository } from "../repository/alunoRepository";
 import { EnderecoService } from "../services/enderecoService";
 import { SolicitacaoService } from "../services/solicitacaoService";
+import { SituacaoVidaService } from "../services/situacaoVidaService";
 
 export class SolicitacaoController {
-    public static async iniciarSolicitacao(req: AuthRequest, res: Response): Promise<Response> {
+  public static async iniciarSolicitacao(req: AuthRequest, res: Response): Promise<Response> {
     try {
       const authId = req.user!.id;
       const auxilioId = Number(req.body.auxilioId);
@@ -23,6 +24,7 @@ export class SolicitacaoController {
       return res.status(500).json({ success: false, message: error.message });
     }
   }
+
   public static async salvarEndereco(req: AuthRequest, res: Response): Promise<Response> {
     try {
       const authId = req.user!.id;
@@ -60,6 +62,79 @@ export class SolicitacaoController {
         solicitacaoId,
         aluno.id,
         payload
+      );
+
+      return res.status(result.statusCode).json({
+        success: result.success,
+        message: result.message,
+        data: result.data,
+      });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  public static async salvarSituacoesVida(req: AuthRequest, res: Response): Promise<Response> {
+    try {
+      const authId = req.user!.id;
+      const solicitacaoId = Number(req.params.id);
+
+      if (isNaN(solicitacaoId) || solicitacaoId <= 0) {
+        return res.status(400).json({ success: false, message: "ID de solicitação inválido." });
+      }
+
+      const aluno = await AlunoRepository.findAlunoByAuthId(authId);
+      if (!aluno) {
+        return res.status(404).json({ success: false, message: "Aluno não encontrado." });
+      }
+
+      const sanitizeString = (val: any) => (typeof val === "string" ? val.trim() : val);
+
+      const payload = {
+        situacoesSaude: req.body.situacoesSaude,
+        situacaoSaudeOutra: sanitizeString(req.body.situacaoSaudeOutra),
+        situacoesViolencia: req.body.situacoesViolencia,
+        situacaoViolenciaOutra: sanitizeString(req.body.situacaoViolenciaOutra),
+        acessoTransporte: req.body.acessoTransporte,
+        identificacaoSituacao: req.body.identificacaoSituacao,
+        situacaoFamiliarInstavel: req.body.situacaoFamiliarInstavel,
+        programaSocial: req.body.programaSocial,
+        programaSocialOutro: sanitizeString(req.body.programaSocialOutro),
+      };
+
+      const result = await SituacaoVidaService.salvarSituacaoVidaSolicitacao(
+        solicitacaoId,
+        aluno.id,
+        payload
+      );
+
+      return res.status(result.statusCode).json({
+        success: result.success,
+        message: result.message,
+        data: result.data,
+      });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  public static async obterSituacoesVida(req: AuthRequest, res: Response): Promise<Response> {
+    try {
+      const authId = req.user!.id;
+      const solicitacaoId = Number(req.params.id);
+
+      if (isNaN(solicitacaoId) || solicitacaoId <= 0) {
+        return res.status(400).json({ success: false, message: "ID de solicitação inválido." });
+      }
+
+      const aluno = await AlunoRepository.findAlunoByAuthId(authId);
+      if (!aluno) {
+        return res.status(404).json({ success: false, message: "Aluno não encontrado." });
+      }
+
+      const result = await SituacaoVidaService.obterSituacaoVidaSolicitacao(
+        solicitacaoId,
+        aluno.id
       );
 
       return res.status(result.statusCode).json({
