@@ -23,6 +23,7 @@ enum Sexo {
 enum EstadoCivil {
   SOLTEIRO
   CASADO
+  SEPARADO
   DIVORCIADO
   VIUVO
   UNIAO_ESTAVEL
@@ -146,10 +147,13 @@ enum OrientacaoSexual {
 enum EtniaRaca {
   BRANCO
   PRETO
+  PRETO_QUILOMBOLA
+  PRETO_NAO_QUILOMBOLA
   PARDO
   AMARELO
   INDIGENA
   NAO_INFORMAR
+  NAO_DECLARAR
 }
 
 enum TipoDeficiencia {
@@ -206,6 +210,9 @@ model Aluno {
   semestreAtual Int?
 
   tipoIngresso String?
+
+  recebeuAuxilioGraduacao   Boolean?
+  auxilioGraduacaoDescricao String?
 
   dataNasc         DateTime? @db.Date
   tipoResponsavel  TipoResponsavel?
