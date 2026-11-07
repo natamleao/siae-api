@@ -111,3 +111,19 @@ export const validatePhone = (phone: string): boolean => {
 
     return false;
 }
+
+export const validateEmailInstitucional = (email: string): boolean => {
+    const trimmed = email.trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmed)) {
+        return false;
+    }
+    const domain = trimmed.split("@")[1];
+    return domain === "ufc.br" || domain.endsWith(".ufc.br");
+};
+
+export const TURNOS_VALIDOS = ["MATUTINO", "VESPERTINO", "NOTURNO", "INTEGRAL"] as const;
+
+export const validateTurno = (turno: string): boolean => {
+    return TURNOS_VALIDOS.includes(turno.trim().toUpperCase() as any);
+};
