@@ -1,6 +1,5 @@
 import prisma from "../config/database";
 import { Prisma } from "@prisma/client";
-import { UpdateAlunoData } from "../models/alunoModel";
 
 export class AlunoRepository {
     public static async findAlunoById(id: number) {

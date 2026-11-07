@@ -7,31 +7,13 @@ export interface RegisterAlunoData {
     senha: string;
 }
 
-export interface UpdateAlunoData {
-    cpf?: string;
-    rg?: string;
-    emailContato?: string;
-    telefone?: string;
-    curso?: string;
-    turno?: string;
-    anoIngresso?: number;
-    semestreAtual?: number;
-    tipoIngresso?: string;
-    dataNasc?: string;
-    sexo?: Sexo;
-    orientacaoSexual?: OrientacaoSexual;
-    identidadeGenero?: IdentidadeGenero;
-    etniaRaca?: EtniaRaca;
-    estadoCivil?: EstadoCivil;
-    deficiencia?: TipoDeficiencia;
-}
-
 export interface IdentificacaoPessoalData {
     nome?: string;
     cpf?: string;
     rg?: string;
     dataNasc?: string;
     telefone?: string;
+    emailContato?: string | null;
     tipoResponsavel?: TipoResponsavel;
     tipoResponsavelOutro?: string | null;
     nomeResponsavel?: string;
@@ -44,6 +26,17 @@ export interface IdentificacaoPessoalData {
     estadoCivil?: EstadoCivil;
     tipoDeficiencia?: TipoDeficiencia;
     tipoDeficienciaOutro?: string | null;
+}
+
+export interface DadosAcademicosData {
+    matricula?: string;
+    curso?: string;
+    turno?: string;
+    tipoIngresso?: string;
+    anoIngresso?: number;
+    semestreAtual?: number;
+    recebeuAuxilioGraduacao?: boolean | string;
+    auxilioGraduacaoDescricao?: string | null;
 }
 
 export interface AlunoRegisterResponse {
