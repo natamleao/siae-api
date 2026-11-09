@@ -7,7 +7,8 @@ export class SolicitacaoRepository {
       where: { id },
     });
   }
-// Verifica se o aluno já tem um rascunho em aberto para aquele auxílio
+
+  // Verifica se o aluno já tem um rascunho em aberto para aquele auxílio
   public static async findRascunho(alunoId: number, auxilioId: number) {
     return prisma.solicitacao.findFirst({
       where: {
@@ -17,6 +18,7 @@ export class SolicitacaoRepository {
       },
     });
   }
+
   // Cria a solicitação como RASCUNHO
   public static async create(alunoId: number, auxilioId: number) {
     return prisma.solicitacao.create({
@@ -25,6 +27,14 @@ export class SolicitacaoRepository {
         auxilioId,
         status: StatusSolicitacao.RASCUNHO,
       },
+    });
+  }
+
+  // Atualiza o relato pessoal da solicitação
+  public static async updateRelato(id: number, relato: string) {
+    return prisma.solicitacao.update({
+      where: { id },
+      data: { relato },
     });
   }
 }

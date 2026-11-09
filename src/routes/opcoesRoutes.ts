@@ -28,15 +28,35 @@ const router = Router();
  *     OpcoesFormularioResponse:
  *       type: object
  *       properties:
- *         situacoesMoradia:
- *           type: array
- *           items:
- *             $ref: '#/components/schemas/Opcao'
  *         condicoesMoradia:
  *           type: array
  *           items:
  *             $ref: '#/components/schemas/Opcao'
  *         situacoesOcupacionais:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/Opcao'
+ *         situacoesSaude:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/Opcao'
+ *         situacoesViolencia:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/Opcao'
+ *         acessosTransporte:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/Opcao'
+ *         identificacoesSituacao:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/Opcao'
+ *         situacoesFamiliaresInstaveis:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/Opcao'
+ *         programasSociais:
  *           type: array
  *           items:
  *             $ref: '#/components/schemas/Opcao'
@@ -48,7 +68,7 @@ const router = Router();
  *   get:
  *     summary: Listar opções dos campos de seleção do formulário
  *     tags: [Opções]
- *     description: Retorna as opções de moradia e ocupação em pares valor/rótulo.
+ *     description: Retorna as opções de moradia, ocupação e situações de vida em pares valor/rótulo.
  *     responses:
  *       200:
  *         description: Opções retornadas com sucesso
