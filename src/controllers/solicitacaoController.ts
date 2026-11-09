@@ -1,10 +1,7 @@
 import { Response } from "express";
 import { AuthRequest } from "../middleware/authMiddleware";
-import { AlunoRepository } from "../repository/alunoRepository";
-import { SolicitacaoRepository } from "../repository/solicitacaoRepository";
 import { EnderecoService } from "../services/enderecoService";
 import { SolicitacaoService } from "../services/solicitacaoService";
-import { AlunoService } from "../services/alunoService";
 import { SituacaoVidaService } from "../services/situacaoVidaService";
 
 export class SolicitacaoController {
@@ -12,22 +9,19 @@ export class SolicitacaoController {
     try {
       const authId = req.user!.id;
       const auxilioId = Number(req.body.auxilioId);
-      const aluno = await AlunoRepository.findAlunoByAuthId(authId);
-      if (!aluno) {
-        return res.status(404).json({ success: false, message: "Aluno não encontrado." });
-      }
-      const result = await SolicitacaoService.iniciarSolicitacao(aluno.id, auxilioId);
+
+      const result = await SolicitacaoService.iniciarSolicitacao(authId, auxilioId);
       return res.status(result.statusCode).json({
         success: result.success,
         message: result.message,
-        data: result.data,
+        ...("data" in result && { data: result.data }),
       });
     } catch (error: any) {
       return res.status(500).json({ success: false, message: error.message });
     }
   }
 
-public static async salvarIdentificacaoPessoal(req: AuthRequest, res: Response): Promise<Response> {
+  public static async salvarIdentificacaoPessoal(req: AuthRequest, res: Response): Promise<Response> {
     try {
       const authId = req.user!.id;
       const solicitacaoId = Number(req.params.id);
@@ -36,22 +30,8 @@ public static async salvarIdentificacaoPessoal(req: AuthRequest, res: Response):
         return res.status(400).json({ success: false, message: "ID de solicitação inválido." });
       }
 
-      const aluno = await AlunoRepository.findAlunoByAuthId(authId);
-      if (!aluno) {
-        return res.status(404).json({ success: false, message: "Aluno não encontrado." });
-      }
-
-      const solicitacao = await SolicitacaoRepository.findById(solicitacaoId);
-      if (!solicitacao) {
-        return res.status(404).json({ success: false, message: "Solicitação não encontrada." });
-      }
-
-      if (solicitacao.alunoId !== aluno.id) {
-        return res.status(403).json({ success: false, message: "Você não tem permissão para alterar esta solicitação." });
-      }
-
-      const result = await AlunoService.salvarIdentificacaoPessoal(aluno.id, req.body);
-      const status = result.success ? 200 : 400;
+      const result = await SolicitacaoService.salvarIdentificacaoPessoal(solicitacaoId, authId, req.body);
+      const status = result.statusCode || (result.success ? 200 : 400);
 
       return res.status(status).json(result);
     } catch (error: any) {
@@ -68,22 +48,8 @@ public static async salvarIdentificacaoPessoal(req: AuthRequest, res: Response):
         return res.status(400).json({ success: false, message: "ID de solicitação inválido." });
       }
 
-      const aluno = await AlunoRepository.findAlunoByAuthId(authId);
-      if (!aluno) {
-        return res.status(404).json({ success: false, message: "Aluno não encontrado." });
-      }
-
-      const solicitacao = await SolicitacaoRepository.findById(solicitacaoId);
-      if (!solicitacao) {
-        return res.status(404).json({ success: false, message: "Solicitação não encontrada." });
-      }
-
-      if (solicitacao.alunoId !== aluno.id) {
-        return res.status(403).json({ success: false, message: "Você não tem permissão para alterar esta solicitação." });
-      }
-
-      const result = await AlunoService.salvarDadosAcademicos(aluno.id, req.body);
-      const status = result.success ? 200 : 400;
+      const result = await SolicitacaoService.salvarDadosAcademicos(solicitacaoId, authId, req.body);
+      const status = result.statusCode || (result.success ? 200 : 400);
 
       return res.status(status).json(result);
     } catch (error: any) {
@@ -98,12 +64,6 @@ public static async salvarIdentificacaoPessoal(req: AuthRequest, res: Response):
 
       if (isNaN(solicitacaoId) || solicitacaoId <= 0) {
         return res.status(400).json({ success: false, message: "ID de solicitação inválido." });
-      }
-
-      // Descobre o alunoId a partir do authId logado
-      const aluno = await AlunoRepository.findAlunoByAuthId(authId);
-      if (!aluno) {
-        return res.status(404).json({ success: false, message: "Aluno não encontrado." });
       }
 
       // Sanitização de strings
@@ -126,20 +86,20 @@ public static async salvarIdentificacaoPessoal(req: AuthRequest, res: Response):
 
       const result = await EnderecoService.salvarEnderecoSolicitacao(
         solicitacaoId,
-        aluno.id,
+        authId,
         payload
       );
 
       return res.status(result.statusCode).json({
         success: result.success,
         message: result.message,
-        data: result.data,
+        ...("data" in result && { data: result.data }),
       });
     } catch (error: any) {
       return res.status(500).json({ success: false, message: error.message });
     }
   }
- 
+
   public static async salvarSituacoesVida(req: AuthRequest, res: Response): Promise<Response> {
     try {
       const authId = req.user!.id;
@@ -147,11 +107,6 @@ public static async salvarIdentificacaoPessoal(req: AuthRequest, res: Response):
 
       if (isNaN(solicitacaoId) || solicitacaoId <= 0) {
         return res.status(400).json({ success: false, message: "ID de solicitação inválido." });
-      }
-
-      const aluno = await AlunoRepository.findAlunoByAuthId(authId);
-      if (!aluno) {
-        return res.status(404).json({ success: false, message: "Aluno não encontrado." });
       }
 
       const sanitizeString = (val: any) => (typeof val === "string" ? val.trim() : val);
@@ -170,14 +125,14 @@ public static async salvarIdentificacaoPessoal(req: AuthRequest, res: Response):
 
       const result = await SituacaoVidaService.salvarSituacaoVidaSolicitacao(
         solicitacaoId,
-        aluno.id,
+        authId,
         payload
       );
 
       return res.status(result.statusCode).json({
         success: result.success,
         message: result.message,
-        data: result.data,
+        ...("data" in result && { data: result.data }),
       });
     } catch (error: any) {
       return res.status(500).json({ success: false, message: error.message });
@@ -193,20 +148,15 @@ public static async salvarIdentificacaoPessoal(req: AuthRequest, res: Response):
         return res.status(400).json({ success: false, message: "ID de solicitação inválido." });
       }
 
-      const aluno = await AlunoRepository.findAlunoByAuthId(authId);
-      if (!aluno) {
-        return res.status(404).json({ success: false, message: "Aluno não encontrado." });
-      }
-
       const result = await SituacaoVidaService.obterSituacaoVidaSolicitacao(
         solicitacaoId,
-        aluno.id
+        authId
       );
 
       return res.status(result.statusCode).json({
         success: result.success,
         message: result.message,
-        data: result.data,
+        ...("data" in result && { data: result.data }),
       });
     } catch (error: any) {
       return res.status(500).json({ success: false, message: error.message });
@@ -222,23 +172,18 @@ public static async salvarIdentificacaoPessoal(req: AuthRequest, res: Response):
         return res.status(400).json({ success: false, message: "ID de solicitação inválido." });
       }
 
-      const aluno = await AlunoRepository.findAlunoByAuthId(authId);
-      if (!aluno) {
-        return res.status(404).json({ success: false, message: "Aluno não encontrado." });
-      }
-
       const relato = req.body.relato ?? req.body.relatoPessoal ?? req.body.texto;
 
       const result = await SolicitacaoService.salvarRelato(
         solicitacaoId,
-        aluno.id,
+        authId,
         relato
       );
 
       return res.status(result.statusCode).json({
         success: result.success,
         message: result.message,
-        data: result.data,
+        ...("data" in result && { data: result.data }),
       });
     } catch (error: any) {
       return res.status(500).json({ success: false, message: error.message });
@@ -254,17 +199,12 @@ public static async salvarIdentificacaoPessoal(req: AuthRequest, res: Response):
         return res.status(400).json({ success: false, message: "ID de solicitação inválido." });
       }
 
-      const aluno = await AlunoRepository.findAlunoByAuthId(authId);
-      if (!aluno) {
-        return res.status(404).json({ success: false, message: "Aluno não encontrado." });
-      }
-
-      const result = await SolicitacaoService.obterRelato(solicitacaoId, aluno.id);
+      const result = await SolicitacaoService.obterRelato(solicitacaoId, authId);
 
       return res.status(result.statusCode).json({
         success: result.success,
         message: result.message,
-        data: result.data,
+        ...("data" in result && { data: result.data }),
       });
     } catch (error: any) {
       return res.status(500).json({ success: false, message: error.message });

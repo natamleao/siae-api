@@ -5,6 +5,16 @@ import { RegisterAlunoData } from "../models/alunoModel";
 import { RegisterFuncionarioData } from "../models/FuncionarioModel";
 
 export class AuthRepository {
+    public static async createAuth(data: { email: string; senha: string; permissao?: Permissao }): Promise<Auth> {
+        return prisma.auth.create({
+            data: {
+                email: data.email,
+                senha: data.senha,
+                permissao: data.permissao || Permissao.ALUNO,
+            }
+        });
+    }
+
     public static async findAuthByEmail(
         email: string,
     ): Promise<Auth | null> {

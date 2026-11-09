@@ -281,14 +281,14 @@ export class AlunoService {
     }
 
 
-    public static async salvarIdentificacaoPessoal(alunoId: number, data: IdentificacaoPessoalData) {
+    public static async salvarIdentificacaoPessoal(alunoAuthId: number, data: IdentificacaoPessoalData) {
         const validationResult = AlunoService.validateIdentificacaoPessoal(data);
         if (!validationResult.success) {
             return validationResult;
         }
 
-        const aluno = await AlunoRepository.findAlunoById(alunoId);
-        if (!aluno) {
+        const alunoAuth = await AlunoRepository.findAlunoByAuthId(alunoAuthId);
+        if (!alunoAuth) {
             return { success: false, message: "Aluno não encontrado." };
         }
 
@@ -303,7 +303,7 @@ export class AlunoService {
             }
 
             const existingCPF = await AlunoRepository.findAlunoByCpf(cpfSanitizado);
-            if (existingCPF && existingCPF.id !== alunoId) {
+            if (existingCPF && existingCPF.id !== alunoAuth.id) {
                 return {
                     success: false,
                     message: "CPF já existente e utilizado por outro aluno."
@@ -320,7 +320,7 @@ export class AlunoService {
             }
 
             const existingRG = await AlunoRepository.findAlunoByRg(rgSanitizado);
-            if (existingRG && existingRG.id !== alunoId) {
+            if (existingRG && existingRG.id !== alunoAuth.id) {
                 return {
                     success: false,
                     message: "RG já existente e utilizado por outro aluno."
@@ -370,12 +370,13 @@ export class AlunoService {
             cloneData.emailContato = data.emailContato ? data.emailContato.trim().toLowerCase() : null;
         }
 
-        const etapaAtual = aluno.etapaCadastro ?? 0;
+        const etapaAtual = alunoAuth.etapaCadastro ?? 0;
         const etapaNova = etapaAtual > 1 ? etapaAtual : 1;
 
         const dadosLimpos = AlunoService.limpezaCamposOutros(cloneData);
         try {
-            const updateAluno = await AlunoRepository.updateAluno(alunoId, {
+            console.log(alunoAuth.id)
+            const updateAluno = await AlunoRepository.updateAluno(alunoAuth.id, {
                 ...dadosLimpos,
                 etapaCadastro: etapaNova
             });
@@ -395,8 +396,8 @@ export class AlunoService {
     }
 
     public static async salvarDadosAcademicos(alunoId: number, data: DadosAcademicosData) {
-        const aluno = await AlunoRepository.findAlunoById(alunoId);
-        if (!aluno) {
+        const alunoAuthId = await AlunoRepository.findAlunoByAuthId(alunoId);
+        if (!alunoAuthId) {
             return { success: false, message: "Aluno não encontrado." };
         }
 
@@ -464,11 +465,11 @@ export class AlunoService {
             dadosAtualizar.auxilioGraduacaoDescricao = data.auxilioGraduacaoDescricao ? data.auxilioGraduacaoDescricao.trim() : null;
         }
 
-        const etapaAtual = aluno.etapaCadastro ?? 0;
+        const etapaAtual = alunoAuthId.etapaCadastro ?? 0;
         const etapaNova = etapaAtual > 3 ? etapaAtual : 3;
 
         try {
-            const updateAluno = await AlunoRepository.updateAluno(alunoId, {
+            const updateAluno = await AlunoRepository.updateAluno(alunoAuthId.id, {
                 ...dadosAtualizar,
                 etapaCadastro: etapaNova
             });

@@ -5,7 +5,6 @@ import { ForgotPasswordData, ResetPasswordData, LoginData, RegisterData, AuthRes
 import { Auth } from '@prisma/client';
 import crypto from 'crypto';
 import { EmailService } from './emailService';
-import prisma from '../config/database';
 
 const RESET_TOKEN_EXPIRY_MINUTES = 5;
 const JWT_SECRET = process.env.JWT_SECRET || 'KEY';
@@ -100,12 +99,10 @@ export class AuthService {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const createdUser = await prisma.auth.create({
-            data: {
-                email,
-                senha: hashedPassword,
-                permissao: (permissao as any) || 'ALUNO',
-            }
+        const createdUser = await AuthRepository.createAuth({
+            email,
+            senha: hashedPassword,
+            permissao: permissao as any,
         });
 
         return {
