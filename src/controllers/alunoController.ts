@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { AlunoService } from '../services/alunoService';
 import { AuthRequest } from "../middleware/authMiddleware";
-import { IdentificacaoPessoalData } from '../models/alunoModel';
+import { IdentificacaoPessoalData, DadosAcademicosData } from '../models/alunoModel';
 
 export class AlunoController {
     public static async register(req: Request, res: Response): Promise<Response> {
@@ -21,31 +21,6 @@ export class AlunoController {
             return res
                 .status(status)
                 .json(result);
-
-        } catch (error: any) {
-            return res.status(500).json({ success: false, message: error.message });
-        }
-    }
-
-    public static async updateDadosComplementares(req: AuthRequest, res: Response): Promise<Response> {
-        try {
-            const authId = req.user!.id;
-            const idTranslate = await AlunoService.getAlunoIdByAuthId(authId)
-
-            if (!idTranslate.success || idTranslate.alunoId === undefined) {
-                return res.status(404).json({
-                    success: false,
-                    message: idTranslate.message || "Aluno não encontrado."
-                });
-            }
-            const alunoId = idTranslate.alunoId;
-
-            const result = await AlunoService.updateDadosComplementares(alunoId, req.body);
-            const status = result.success ? 200 : 400
-
-            return res
-                .status(status)
-                .json(result)
 
         } catch (error: any) {
             return res.status(500).json({ success: false, message: error.message });
@@ -185,6 +160,7 @@ export class AlunoController {
                 rg,
                 dataNasc,
                 telefone,
+                emailContato,
                 tipoResponsavel,
                 tipoResponsavelOutro,
                 nomeResponsavel,
@@ -201,7 +177,7 @@ export class AlunoController {
 
 
             const dados: IdentificacaoPessoalData = {
-                nome, cpf, rg, dataNasc, telefone,
+                nome, cpf, rg, dataNasc, telefone, emailContato,
                 tipoResponsavel, tipoResponsavelOutro, nomeResponsavel,
                 sexo, identidadeGenero, identidadeGeneroOutro,
                 orientacaoSexual, orientacaoSexualOutro,
@@ -216,6 +192,50 @@ export class AlunoController {
             return res
                 .status(status)
                 .json(result)
+        } catch (error: any) {
+            return res.status(500).json({ success: false, message: error.message });
+        }
+    }
+
+    public static async salvarDadosAcademicos(req: AuthRequest, res: Response): Promise<Response> {
+        try {
+            const authId = req.user!.id;
+            const idTranslate = await AlunoService.getAlunoIdByAuthId(authId);
+
+            if (!idTranslate.success || idTranslate.alunoId === undefined) {
+                return res.status(404).json({
+                    success: false,
+                    message: idTranslate.message || "Aluno não encontrado."
+                });
+            }
+
+            const alunoId = idTranslate.alunoId;
+            const {
+                matricula,
+                curso,
+                turno,
+                tipoIngresso,
+                anoIngresso,
+                semestreAtual,
+                recebeuAuxilioGraduacao,
+                auxilioGraduacaoDescricao
+            } = req.body;
+
+            const dados: DadosAcademicosData = {
+                matricula,
+                curso,
+                turno,
+                tipoIngresso,
+                anoIngresso,
+                semestreAtual,
+                recebeuAuxilioGraduacao,
+                auxilioGraduacaoDescricao
+            };
+
+            const result = await AlunoService.salvarDadosAcademicos(alunoId, dados);
+            const status = result.success ? 200 : 400;
+
+            return res.status(status).json(result);
         } catch (error: any) {
             return res.status(500).json({ success: false, message: error.message });
         }

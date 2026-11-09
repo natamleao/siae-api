@@ -1,8 +1,10 @@
 import { Response } from "express";
 import { AuthRequest } from "../middleware/authMiddleware";
 import { AlunoRepository } from "../repository/alunoRepository";
+import { SolicitacaoRepository } from "../repository/solicitacaoRepository";
 import { EnderecoService } from "../services/enderecoService";
 import { SolicitacaoService } from "../services/solicitacaoService";
+import { AlunoService } from "../services/alunoService";
 import { SituacaoVidaService } from "../services/situacaoVidaService";
 
 export class SolicitacaoController {
@@ -20,6 +22,70 @@ export class SolicitacaoController {
         message: result.message,
         data: result.data,
       });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+public static async salvarIdentificacaoPessoal(req: AuthRequest, res: Response): Promise<Response> {
+    try {
+      const authId = req.user!.id;
+      const solicitacaoId = Number(req.params.id);
+
+      if (isNaN(solicitacaoId) || solicitacaoId <= 0) {
+        return res.status(400).json({ success: false, message: "ID de solicitação inválido." });
+      }
+
+      const aluno = await AlunoRepository.findAlunoByAuthId(authId);
+      if (!aluno) {
+        return res.status(404).json({ success: false, message: "Aluno não encontrado." });
+      }
+
+      const solicitacao = await SolicitacaoRepository.findById(solicitacaoId);
+      if (!solicitacao) {
+        return res.status(404).json({ success: false, message: "Solicitação não encontrada." });
+      }
+
+      if (solicitacao.alunoId !== aluno.id) {
+        return res.status(403).json({ success: false, message: "Você não tem permissão para alterar esta solicitação." });
+      }
+
+      const result = await AlunoService.salvarIdentificacaoPessoal(aluno.id, req.body);
+      const status = result.success ? 200 : 400;
+
+      return res.status(status).json(result);
+    } catch (error: any) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  public static async salvarDadosAcademicos(req: AuthRequest, res: Response): Promise<Response> {
+    try {
+      const authId = req.user!.id;
+      const solicitacaoId = Number(req.params.id);
+
+      if (isNaN(solicitacaoId) || solicitacaoId <= 0) {
+        return res.status(400).json({ success: false, message: "ID de solicitação inválido." });
+      }
+
+      const aluno = await AlunoRepository.findAlunoByAuthId(authId);
+      if (!aluno) {
+        return res.status(404).json({ success: false, message: "Aluno não encontrado." });
+      }
+
+      const solicitacao = await SolicitacaoRepository.findById(solicitacaoId);
+      if (!solicitacao) {
+        return res.status(404).json({ success: false, message: "Solicitação não encontrada." });
+      }
+
+      if (solicitacao.alunoId !== aluno.id) {
+        return res.status(403).json({ success: false, message: "Você não tem permissão para alterar esta solicitação." });
+      }
+
+      const result = await AlunoService.salvarDadosAcademicos(aluno.id, req.body);
+      const status = result.success ? 200 : 400;
+
+      return res.status(status).json(result);
     } catch (error: any) {
       return res.status(500).json({ success: false, message: error.message });
     }
@@ -73,7 +139,7 @@ export class SolicitacaoController {
       return res.status(500).json({ success: false, message: error.message });
     }
   }
-
+ 
   public static async salvarSituacoesVida(req: AuthRequest, res: Response): Promise<Response> {
     try {
       const authId = req.user!.id;

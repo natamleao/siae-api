@@ -1,10 +1,18 @@
-import { IdentificacaoPessoalData, RegisterAlunoData } from "../models/alunoModel";
-import { UpdateAlunoData } from "../models/alunoModel";
+import { IdentificacaoPessoalData, RegisterAlunoData, DadosAcademicosData } from "../models/alunoModel";
 import { AlunoRepository } from "../repository/alunoRepository";
 import { AuthRepository } from "../repository/authRepository";
 import { generateToken } from "./authService";
 
-import { validateCPF, validateName, validateRg, converterData, isDataNascValida, validatePhone } from "../utils/validators";
+import {
+    validateCPF,
+    validateName,
+    validateRg,
+    converterData,
+    isDataNascValida,
+    validatePhone,
+    validateEmailInstitucional,
+    validateTurno
+} from "../utils/validators";
 import { sanitizeCpf, sanitizeRg, sanitizePhone } from "../utils/sanitize";
 
 import { TipoResponsavel, Sexo, IdentidadeGenero, OrientacaoSexual, EtniaRaca, EstadoCivil, TipoDeficiencia } from "@prisma/client";
@@ -89,43 +97,7 @@ export class AlunoService {
 
     }
 
-    public static async updateDadosComplementares(alunoId: number, data: UpdateAlunoData) {
-        if (data.cpf) {
-            const existingCPF = await AlunoRepository.findAlunoByCpf(data.cpf);
-            if (existingCPF && existingCPF.id !== alunoId) {
-                return {
-                    success: false,
-                    message: "CPF já existente e utilizado por outro aluno."
-                }
-            }
-        }
-
-        if (data.rg) {
-            const existingRG = await AlunoRepository.findAlunoByRg(data.rg);
-            if (existingRG && existingRG.id !== alunoId) {
-                return {
-                    success: false,
-                    message: "RG já existente e utilizado por outro aluno."
-                }
-            }
-        }
-
-        try {
-            const updateAluno = await AlunoRepository.updateAluno(alunoId, data);
-            return {
-                success: true,
-                message: "Dados atualizados!",
-                data: updateAluno
-            }
-
-        } catch (error: any) {
-            return {
-                success: false,
-                message: "Erro ao atualizar os dados: " + error.message
-            }
-        }
-    }
-
+ 
     public static async getMeusDados(authId: number) {
         const dadosAluno = await AlunoRepository.findAlunoByAuthId(authId);
         if (!dadosAluno) {
@@ -388,6 +360,16 @@ export class AlunoService {
             cloneData.telefone = telefoneSanitizado;
         }
 
+        if (data.emailContato !== undefined) {
+            if (data.emailContato && !validateEmailInstitucional(data.emailContato)) {
+                return {
+                    success: false,
+                    message: "E-mail institucional inválido. Deve conter @ e domínio .ufc.br"
+                };
+            }
+            cloneData.emailContato = data.emailContato ? data.emailContato.trim().toLowerCase() : null;
+        }
+
         const etapaAtual = aluno.etapaCadastro ?? 0;
         const etapaNova = etapaAtual > 1 ? etapaAtual : 1;
 
@@ -400,14 +382,106 @@ export class AlunoService {
 
             return {
                 success: true,
-                message: "...",
-                updateAluno
+                message: "Identificação pessoal salva com sucesso.",
+                data: updateAluno
             }
         } catch (error) {
             console.log("Erro ao atualizar o aluno")
             return {
                 success: false,
                 message: "Erro ao atualizar aluno."
+            };
+        }
+    }
+
+    public static async salvarDadosAcademicos(alunoId: number, data: DadosAcademicosData) {
+        const aluno = await AlunoRepository.findAlunoById(alunoId);
+        if (!aluno) {
+            return { success: false, message: "Aluno não encontrado." };
+        }
+
+        const dadosAtualizar: any = {};
+
+        if (data.curso !== undefined) {
+            dadosAtualizar.curso = data.curso ? data.curso.trim() : null;
+        }
+
+        if (data.turno !== undefined) {
+            if (data.turno) {
+                if (!validateTurno(data.turno)) {
+                    return {
+                        success: false,
+                        message: "Turno inválido. Escolha entre: Matutino, Vespertino, Noturno ou Integral."
+                    };
+                }
+                dadosAtualizar.turno = data.turno.trim().toUpperCase();
+            } else {
+                dadosAtualizar.turno = null;
+            }
+        }
+
+        if (data.tipoIngresso !== undefined) {
+            dadosAtualizar.tipoIngresso = data.tipoIngresso ? data.tipoIngresso.trim() : null;
+        }
+
+        if (data.anoIngresso !== undefined) {
+            if (data.anoIngresso !== null && (isNaN(Number(data.anoIngresso)) || Number(data.anoIngresso) < 1900)) {
+                return { success: false, message: "Ano de ingresso inválido." };
+            }
+            dadosAtualizar.anoIngresso = data.anoIngresso !== null ? Number(data.anoIngresso) : null;
+        }
+
+        if (data.semestreAtual !== undefined) {
+            if (data.semestreAtual !== null && (isNaN(Number(data.semestreAtual)) || Number(data.semestreAtual) < 1 || Number(data.semestreAtual) > 20)) {
+                return { success: false, message: "Semestre atual inválido." };
+            }
+            dadosAtualizar.semestreAtual = data.semestreAtual !== null ? Number(data.semestreAtual) : null;
+        }
+
+        if (data.recebeuAuxilioGraduacao !== undefined) {
+            let recebeuAuxilio: boolean | null = null;
+            if (typeof data.recebeuAuxilioGraduacao === "boolean") {
+                recebeuAuxilio = data.recebeuAuxilioGraduacao;
+            } else if (typeof data.recebeuAuxilioGraduacao === "string") {
+                const lower = data.recebeuAuxilioGraduacao.trim().toLowerCase();
+                if (lower === "sim" || lower === "true") {
+                    recebeuAuxilio = true;
+                } else if (lower === "nao" || lower === "não" || lower === "false") {
+                    recebeuAuxilio = false;
+                }
+            }
+
+            dadosAtualizar.recebeuAuxilioGraduacao = recebeuAuxilio;
+
+            if (recebeuAuxilio === true) {
+                if (data.auxilioGraduacaoDescricao !== undefined) {
+                    dadosAtualizar.auxilioGraduacaoDescricao = data.auxilioGraduacaoDescricao ? data.auxilioGraduacaoDescricao.trim() : null;
+                }
+            } else if (recebeuAuxilio === false) {
+                dadosAtualizar.auxilioGraduacaoDescricao = null;
+            }
+        } else if (data.auxilioGraduacaoDescricao !== undefined) {
+            dadosAtualizar.auxilioGraduacaoDescricao = data.auxilioGraduacaoDescricao ? data.auxilioGraduacaoDescricao.trim() : null;
+        }
+
+        const etapaAtual = aluno.etapaCadastro ?? 0;
+        const etapaNova = etapaAtual > 3 ? etapaAtual : 3;
+
+        try {
+            const updateAluno = await AlunoRepository.updateAluno(alunoId, {
+                ...dadosAtualizar,
+                etapaCadastro: etapaNova
+            });
+
+            return {
+                success: true,
+                message: "Dados acadêmicos salvos com sucesso.",
+                data: updateAluno
+            };
+        } catch (error: any) {
+            return {
+                success: false,
+                message: "Erro ao atualizar dados acadêmicos: " + error.message
             };
         }
     }

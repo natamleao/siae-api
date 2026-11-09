@@ -69,51 +69,6 @@ router.post("/register", AlunoController.register);
 
 /**
  * @openapi
- * /aluno/dados-complementares:
- *   patch:
- *     summary: Atualizar dados complementares do aluno logado
- *     tags: [Alunos]
- *     security:
- *       - OAuth2PasswordBearer: []
- *       - BearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             description: Todos os campos são opcionais — envie apenas os que deseja atualizar
- *             properties:
- *               cpf: { type: string, example: "123.456.789-00" }
- *               rg: { type: string, example: "MG-12.345.678" }
- *               emailContato: { type: string, example: "contato@email.com" }
- *               telefone: { type: string, example: "(11) 91234-5678" }
- *               curso: { type: string, example: "Engenharia de Software" }
- *               turno: { type: string, example: "Noturno" }
- *               anoIngresso: { type: number, example: 2023 }
- *               semestreAtual: { type: number, example: 3 }
- *               tipoIngresso: { type: string, example: "Vestibular" }
- *               dataNasc: { type: string, format: date, example: "2000-05-10" }
- *               sexo: { type: string, example: "Masculino" }
- *               orientacaoSexual: { type: string, example: "Heterossexual" }
- *               identidadeGenero: { type: string, example: "Cisgênero" }
- *               etniaRaca: { type: string, example: "Parda" }
- *               estadoCivil: { type: string, example: "Solteiro" }
- *               deficiencia: { type: string, example: "Nenhuma" }
- *     responses:
- *       200:
- *         description: Dados atualizados com sucesso
- *       400:
- *         description: CPF ou RG já cadastrados por outro aluno
- *       401:
- *         description: Não autenticado (Token ausente ou inválido)
- *       403:
- *         description: Acesso negado (Requer permissão de ALUNO)
- */
-router.patch("/dados-complementares", authenticate, requireAluno, AlunoController.updateDadosComplementares);
-
-/**
- * @openapi
  * /aluno/meus-dados:
  *   get:
  *     summary: Obter dados do aluno logado
@@ -249,7 +204,7 @@ router.get("/:id", authenticate, requireFuncionario, AlunoController.getAlunoByI
 /**
  * @openapi
  * /aluno/identificacao-pessoal:
- *   patch:
+ *   post:
  *     summary: Salvar a Etapa 1 do cadastro (Identificação Pessoal e Contato) do aluno logado
  *     tags: [Alunos]
  *     description: >
@@ -273,6 +228,7 @@ router.get("/:id", authenticate, requireFuncionario, AlunoController.getAlunoByI
  *               rg: { type: string, description: "Letras e números; aceita ponto e hífen", example: "12.345.678-9" }
  *               dataNasc: { type: string, description: "Formato DD/MM/AAAA; entre 14 e 100 anos, sem datas futuras", example: "15/03/2005" }
  *               telefone: { type: string, description: "DDD + número; aceita máscara", example: "(88) 91234-5678" }
+ *               emailContato: { type: string, description: "E-mail institucional com domínio @*.ufc.br", example: "aluno@alu.ufc.br" }
  *               tipoResponsavel:
  *                 type: string
  *                 enum: [PAI, MAE, PROPRIO, OUTRO]
@@ -291,10 +247,10 @@ router.get("/:id", authenticate, requireFuncionario, AlunoController.getAlunoByI
  *               orientacaoSexualOutro: { type: string, description: "Obrigatório quando orientacaoSexual for OUTRO" }
  *               etniaRaca:
  *                 type: string
- *                 enum: [BRANCO, PRETO, PARDO, AMARELO, INDIGENA, NAO_INFORMAR]
+ *                 enum: [BRANCO, PRETO, PRETO_QUILOMBOLA, PRETO_NAO_QUILOMBOLA, PARDO, AMARELO, INDIGENA, NAO_INFORMAR, NAO_DECLARAR]
  *               estadoCivil:
  *                 type: string
- *                 enum: [SOLTEIRO, CASADO, DIVORCIADO, VIUVO, UNIAO_ESTAVEL]
+ *                 enum: [SOLTEIRO, CASADO, SEPARADO, DIVORCIADO, VIUVO, UNIAO_ESTAVEL]
  *               tipoDeficiencia:
  *                 type: string
  *                 enum: [NAO_POSSUI, ALTAS_HABILIDADES_SUPERDOTACAO, BAIXA_VISAO, CEGUEIRA, AUDITIVA, FISICA, INTELECTUAL, MENTAL, MULTIPLA, SENSORIAL, SINDROME_ASPERGER, TEA, TRANSTORNO_GLOBAL_DESENVOLVIMENTO, OUTRA]
@@ -308,12 +264,12 @@ router.get("/:id", authenticate, requireFuncionario, AlunoController.getAlunoByI
  *               type: object
  *               properties:
  *                 success: { type: boolean, example: true }
- *                 message: { type: string, example: "Atualizado com sucesso." }
+ *                 message: { type: string, example: "Identificação pessoal salva com sucesso." }
  *                 data:
  *                   type: object
  *                   description: Aluno atualizado, incluindo etapaCadastro e cadastroFinalizado
  *       400:
- *         description: Dado inválido (CPF, RG, nome, data, telefone, opção fora da lista, campo "Outro" ausente) ou CPF/RG já usado por outro aluno
+ *         description: Dado inválido (CPF, RG, nome, data, telefone, e-mail institucional, opção fora da lista, campo "Outro" ausente) ou CPF/RG já usado por outro aluno
  *         content:
  *           application/json:
  *             schema:
@@ -328,6 +284,74 @@ router.get("/:id", authenticate, requireFuncionario, AlunoController.getAlunoByI
  *       404:
  *         description: Aluno não encontrado
  */
-router.patch("/identificacao-pessoal", authenticate, requireAluno, AlunoController.salvarIdentificacaoPessoal);
+router.post("/identificacao-pessoal", authenticate, requireAluno, AlunoController.salvarIdentificacaoPessoal);
+
+/**
+ * @openapi
+ * /aluno/dados-academicos:
+ *   post:
+ *     summary: Salvar a Etapa 3 do cadastro (Dados Acadêmicos) do aluno logado
+ *     tags: [Alunos]
+ *     description: >
+ *       Salva os dados da Etapa 3 (Dados Acadêmicos). Todos os campos são opcionais para permitir rascunho
+ *       ("Salvar e continuar depois"). Apenas os campos enviados são validados e atualizados.
+ *       A etapa atual (`etapaCadastro`) avança para no mínimo 3 e nunca regride.
+ *     security:
+ *       - OAuth2PasswordBearer: []
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               curso:
+ *                 type: string
+ *                 example: "Engenharia de Software"
+ *               turno:
+ *                 type: string
+ *                 enum: [MATUTINO, VESPERTINO, NOTURNO, INTEGRAL]
+ *                 example: "INTEGRAL"
+ *               tipoIngresso:
+ *                 type: string
+ *                 description: "Modalidade de ingresso (ex: Ampla Concorrência, Cota L1, etc.)"
+ *                 example: "Ampla Concorrência"
+ *               anoIngresso:
+ *                 type: integer
+ *                 example: 2024
+ *               semestreAtual:
+ *                 type: integer
+ *                 example: 2
+ *               recebeuAuxilioGraduacao:
+ *                 type: boolean
+ *                 description: "Se já recebeu ou recebe auxílio durante a graduação (aceita boolean ou string 'SIM'/'NAO')"
+ *                 example: true
+ *               auxilioGraduacaoDescricao:
+ *                 type: string
+ *                 description: "Qual auxílio (obrigatório no preenchimento se recebeu auxílio)"
+ *                 example: "Auxílio Moradia 2024"
+ *     responses:
+ *       200:
+ *         description: Dados acadêmicos salvos com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 message: { type: string, example: "Dados acadêmicos salvos com sucesso." }
+ *                 data:
+ *                   type: object
+ *       400:
+ *         description: Dados inválidos (turno inválido, ano/semestre inválidos)
+ *       401:
+ *         description: Não autenticado (Token ausente ou inválido)
+ *       403:
+ *         description: Acesso negado (Requer permissão de ALUNO)
+ *       404:
+ *         description: Aluno não encontrado
+ */
+router.post("/dados-academicos", authenticate, requireAluno, AlunoController.salvarDadosAcademicos);
 
 export default router;
