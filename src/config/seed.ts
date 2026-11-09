@@ -27,6 +27,39 @@ export async function seedDatabase(): Promise<void> {
     } else {
         console.log("ℹ️ [Seed] Usuário Administrador já existe.");
     }
+
+    // 1.1 Seed do Aluno Administrador (ALUNO_ADMIN)
+    const alunoAdminEmail = "alunoadmin@siae.br";
+
+    const existingAlunoAdmin = await prisma.auth.findUnique({
+        where: { email: alunoAdminEmail }
+    });
+
+    if (!existingAlunoAdmin) {
+        const senhaHash = await bcrypt.hash("admin123", 10);
+
+        await prisma.$transaction(async (tx) => {
+            const auth = await tx.auth.create({
+                data: {
+                    email: alunoAdminEmail,
+                    senha: senhaHash,
+                    permissao: "ALUNO_ADMIN"
+                }
+            });
+
+            await tx.aluno.create({
+                data: {
+                    authId: auth.id,
+                    nome: "Aluno Administrador",
+                    matricula: "0000000000"
+                }
+            });
+        });
+
+        console.log("🌱 [Seed] Usuário Aluno Administrador criado com sucesso! (alunoadmin@siae.br / admin123)");
+    } else {
+        console.log("ℹ️ [Seed] Usuário Aluno Administrador já existe.");
+    }
     // 2. Seed dos Auxílios Padrão
     const countAuxilios = await prisma.auxilio.count();
     if (countAuxilios === 0) {
@@ -64,15 +97,9 @@ export async function seedDatabase(): Promise<void> {
  */
 export async function checkAndSeedDatabase(): Promise<void> {
     try {
-        const count = await prisma.auth.count();
-
-        if (count === 0) {
-            console.log("🌱 [Seed] Banco de dados vazio detectado. Executando seed inicial automático...");
-            await seedDatabase();
-            console.log("✅ [Seed] Inicialização do banco de dados concluída com sucesso!");
-        } else {
-            console.log("ℹ️ [Seed] Banco de dados já populado. Seed automático ignorado.");
-        }
+        console.log("🌱 [Seed] Verificando sementes iniciais do banco de dados...");
+        await seedDatabase();
+        console.log("✅ [Seed] Verificação de sementes concluída com sucesso!");
     } catch (error) {
         console.error("⚠️ [Seed] Não foi possível verificar ou executar o seed automático:", error);
     }

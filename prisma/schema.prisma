@@ -12,6 +12,7 @@ enum Permissao {
   ALUNO
   TECNICO
   ASSISTENTE
+  ALUNO_ADMIN
 }
 
 enum Sexo {
