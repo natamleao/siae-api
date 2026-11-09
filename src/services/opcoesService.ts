@@ -1,10 +1,22 @@
 import {
   CondicaoMoradia,
   SituacaoOcupacional,
+  SituacaoSaude,
+  SituacaoViolencia,
+  AcessoTransporte,
+  IdentificacaoSituacao,
+  SituacaoFamiliarInstavel,
+  ProgramaSocial,
 } from "@prisma/client";
 import {
   rotulosCondicaoMoradia,
   rotulosSituacaoOcupacional,
+  rotulosSituacaoSaude,
+  rotulosSituacaoViolencia,
+  rotulosAcessoTransporte,
+  rotulosIdentificacaoSituacao,
+  rotulosSituacaoFamiliarInstavel,
+  rotulosProgramaSocial,
 } from "../enums/rotulos";
 import { Opcao, OpcoesFormularioResponse } from "../models/opcao";
 
@@ -26,6 +38,15 @@ export class OpcoesService {
         SituacaoOcupacional,
         rotulosSituacaoOcupacional
       ),
+      situacoesSaude: enumParaOpcoes(SituacaoSaude, rotulosSituacaoSaude),
+      situacoesViolencia: enumParaOpcoes(SituacaoViolencia, rotulosSituacaoViolencia),
+      acessosTransporte: enumParaOpcoes(AcessoTransporte, rotulosAcessoTransporte),
+      identificacoesSituacao: enumParaOpcoes(IdentificacaoSituacao, rotulosIdentificacaoSituacao),
+      situacoesFamiliaresInstaveis: enumParaOpcoes(
+        SituacaoFamiliarInstavel,
+        rotulosSituacaoFamiliarInstavel
+      ),
+      programasSociais: enumParaOpcoes(ProgramaSocial, rotulosProgramaSocial),
     };
   }
 }

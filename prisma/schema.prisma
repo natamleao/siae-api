@@ -37,10 +37,47 @@ enum TipoIngresso {
 }
 
 enum SituacaoSaude {
-  doencasGraves
-  cronicas
-  deficiencia
-  usomedicacaocontinua
+  DOENCA_CRONICA
+  DOENCA_GRAVE
+  DEFICIENCIA
+  USO_CONTINUO_MEDICAMENTO
+  OUTRA
+  NAO
+}
+
+enum SituacaoViolencia {
+  VIOLENCIA_DOMESTICA
+  VIOLENCIA_PSICOLOGICA
+  VIOLENCIA_COMUNIDADE_URBANA
+  OUTRA
+  NAO
+}
+
+enum AcessoTransporte {
+  NAO_TENHO_ACESSO
+  TRANSPORTE_PAGO_COM_DIFICULDADE
+  TRANSPORTE_PAGO_SEM_DIFICULDADE
+  TRANSPORTE_GRATUITO_COM_DIFICULDADE
+  TRANSPORTE_GRATUITO_SEM_DIFICULDADE
+}
+
+enum IdentificacaoSituacao {
+  GESTANTE
+  TEM_FILHOS
+  NAO
+}
+
+enum SituacaoFamiliarInstavel {
+  SIM
+  NAO
+}
+
+enum ProgramaSocial {
+  BOLSA_FAMILIA
+  BPC_LOAS
+  SEGURO_SAFRA
+  OUTRO
+  NAO
 }
 
 enum TipoMoradia {
@@ -243,6 +280,7 @@ model Aluno {
   solicitacoes      Solicitacao[]
   documentos        Documento[]
   auxilios          AlunoAuxilio[]
+  situacaoVida      SituacaoVida?
 
   @@map("aluno")
 }
@@ -336,6 +374,34 @@ model Despesa {
   @@map("despesas")
 }
 
+model SituacaoVida {
+  id      Int @id @default(autoincrement())
+  alunoId Int @unique @map("id_aluno")
+
+  situacoesSaude     SituacaoSaude[] @map("situacoes_saude")
+  situacaoSaudeOutra String?         @map("situacao_saude_outra")
+
+  situacoesViolencia     SituacaoViolencia[] @map("situacoes_violencia")
+  situacaoViolenciaOutra String?             @map("situacao_violencia_outra")
+
+  acessoTransporte AcessoTransporte? @map("acesso_transporte")
+
+  identificacaoSituacao IdentificacaoSituacao? @map("identificacao_situacao")
+
+  situacaoFamiliarInstavel SituacaoFamiliarInstavel? @map("situacao_familiar_instavel")
+
+  programaSocial      ProgramaSocial? @map("programa_social")
+  programaSocialOutro String?         @map("programa_social_outro")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+
+  aluno Aluno @relation(fields: [alunoId], references: [id], onDelete: Cascade)
+
+  @@index([alunoId])
+  @@map("situacoes_vida")
+}
+
 model Auxilio {
   id Int @id @default(autoincrement())
 
@@ -384,6 +450,7 @@ model Solicitacao {
   dataFinal  DateTime? @map("data_final_analise")
 
   observacao String?
+  relato        String?
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @map("updated_at")
