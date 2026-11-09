@@ -57,7 +57,7 @@ export const logout = (req: Request, res: Response): Response => {
 
 }
 export const requireAdmin = (req: AuthRequest, res: Response, next: NextFunction) => {
-    if (req.user?.permissao === Permissao.ADMIN) {
+    if (req.user?.permissao === Permissao.ADMIN || req.user?.permissao === Permissao.ALUNO_ADMIN) {
         next();
     } else {
         return res.status(403).json({
@@ -69,7 +69,10 @@ export const requireAdmin = (req: AuthRequest, res: Response, next: NextFunction
 
 export const requireFuncionario = (req: AuthRequest, res: Response, next: NextFunction) => {
     if (
-        req.user?.permissao === Permissao.TECNICO || req.user?.permissao === Permissao.ASSISTENTE || req.user?.permissao === Permissao.ADMIN
+        req.user?.permissao === Permissao.TECNICO ||
+        req.user?.permissao === Permissao.ASSISTENTE ||
+        req.user?.permissao === Permissao.ADMIN ||
+        req.user?.permissao === Permissao.ALUNO_ADMIN
     ) {
         next();
     } else {
@@ -83,7 +86,8 @@ export const requireFuncionario = (req: AuthRequest, res: Response, next: NextFu
 
 export const requireAluno = (req: AuthRequest, res: Response, next: NextFunction) => {
     if (
-        req.user?.permissao === Permissao.ALUNO
+        req.user?.permissao === Permissao.ALUNO ||
+        req.user?.permissao === Permissao.ALUNO_ADMIN
     ) {
         next();
     } else {

@@ -10,7 +10,7 @@ export class FuncionarioService {
         adminId: number
     ) {
         const admin = await AuthRepository.findAuthById(adminId);
-        if (!admin || admin.permissao !== Permissao.ADMIN) {
+        if (!admin || (admin.permissao !== Permissao.ADMIN && admin.permissao !== Permissao.ALUNO_ADMIN)) {
             return { success: false, message: 'Apenas ADMIN pode cadastrar funcionários' };
         }
 
