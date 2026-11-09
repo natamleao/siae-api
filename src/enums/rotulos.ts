@@ -1,8 +1,9 @@
 import {
   CondicaoMoradia,
   SituacaoOcupacional,
+  EstadoCivil,
+  EtniaRaca,
 } from "@prisma/client";
-// ADICIONAR O RESTANTE DOS ENUMS
 
 export const rotulosCondicaoMoradia: Record<CondicaoMoradia, string> = {
   MORA_COM_FAMILIA: "Mora com a família",
@@ -22,4 +23,25 @@ export const rotulosSituacaoOcupacional: Record<SituacaoOcupacional, string> = {
   TRABALHADOR_RURAL: "Trabalhador(a) rural",
   BOLSISTA_ESTAGIARIO: "Bolsista ou estagiário(a)",
   DESEMPREGADO_SEGURO_DESEMPREGO: "Desempregado(a) ou em seguro-desemprego",
+};
+
+export const rotulosEstadoCivil: Record<EstadoCivil, string> = {
+  SOLTEIRO: "Solteiro(a)",
+  CASADO: "Casado(a)",
+  UNIAO_ESTAVEL: "União Estável",
+  SEPARADO: "Separado(a)",
+  DIVORCIADO: "Divorciado(a)",
+  VIUVO: "Viúvo(a)",
+};
+
+export const rotulosEtniaRaca: Record<EtniaRaca, string> = {
+  AMARELO: "Amarela",
+  BRANCO: "Branca",
+  INDIGENA: "Indígena",
+  PARDO: "Parda",
+  PRETO: "Preta",
+  PRETO_QUILOMBOLA: "Preta - quilombola",
+  PRETO_NAO_QUILOMBOLA: "Preta - não quilombola",
+  NAO_INFORMAR: "Prefiro não informar",
+  NAO_DECLARAR: "Não declarar",
 };
