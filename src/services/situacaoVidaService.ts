@@ -8,21 +8,28 @@ import {
 } from "@prisma/client";
 import { SituacaoVidaRepository } from "../repository/situacaoVidaRepository";
 import { SolicitacaoRepository } from "../repository/solicitacaoRepository";
+import { AlunoRepository } from "../repository/alunoRepository";
 import { SalvarSituacaoVidaDTO } from "../models/situacaoVidaModel";
 
 export class SituacaoVidaService {
   public static async salvarSituacaoVidaSolicitacao(
     solicitacaoId: number,
-    alunoId: number,
+    authId: number,
     dados: SalvarSituacaoVidaDTO
   ) {
-    // 1. Validar se a solicitação existe e pertence ao aluno logado
+    // 1. Descobrir aluno pelo authId
+    const aluno = await AlunoRepository.findAlunoByAuthId(authId);
+    if (!aluno) {
+      return { success: false, statusCode: 404, message: "Aluno não encontrado." };
+    }
+
+    // 2. Validar se a solicitação existe e pertence ao aluno logado
     const solicitacao = await SolicitacaoRepository.findById(solicitacaoId);
     if (!solicitacao) {
       return { success: false, statusCode: 404, message: "Solicitação não encontrada." };
     }
 
-    if (solicitacao.alunoId !== alunoId) {
+    if (solicitacao.alunoId !== aluno.id) {
       return {
         success: false,
         statusCode: 403,
@@ -30,7 +37,7 @@ export class SituacaoVidaService {
       };
     }
 
-    // 2. Validação dos enums (se informados)
+    // 3. Validação dos enums (se informados)
     if (dados.situacoesSaude && Array.isArray(dados.situacoesSaude)) {
       const valoresValidos = Object.values(SituacaoSaude);
       const invalido = dados.situacoesSaude.some((s) => !valoresValidos.includes(s));
@@ -79,7 +86,7 @@ export class SituacaoVidaService {
       return { success: false, statusCode: 400, message: "Opção inválida de programa social." };
     }
 
-    // 3. Regras de campos condicionais 'Outro':
+    // 4. Regras de campos condicionais 'Outro':
     // Se a opção OUTRA/OUTRO foi selecionada, preserva o texto limpo; caso contrário, define null.
     const situacaoSaudeOutra = dados.situacoesSaude?.includes(SituacaoSaude.OUTRA)
       ? dados.situacaoSaudeOutra?.trim() || null
@@ -105,8 +112,8 @@ export class SituacaoVidaService {
       programaSocialOutro,
     };
 
-    // 4. Salvar (upsert)
-    const registro = await SituacaoVidaRepository.upsertSituacaoVida(alunoId, payloadTratado);
+    // 5. Salvar (upsert)
+    const registro = await SituacaoVidaRepository.upsertSituacaoVida(aluno.id, payloadTratado);
 
     return {
       success: true,
@@ -116,13 +123,18 @@ export class SituacaoVidaService {
     };
   }
 
-  public static async obterSituacaoVidaSolicitacao(solicitacaoId: number, alunoId: number) {
+  public static async obterSituacaoVidaSolicitacao(solicitacaoId: number, authId: number) {
+    const aluno = await AlunoRepository.findAlunoByAuthId(authId);
+    if (!aluno) {
+      return { success: false, statusCode: 404, message: "Aluno não encontrado." };
+    }
+
     const solicitacao = await SolicitacaoRepository.findById(solicitacaoId);
     if (!solicitacao) {
       return { success: false, statusCode: 404, message: "Solicitação não encontrada." };
     }
 
-    if (solicitacao.alunoId !== alunoId) {
+    if (solicitacao.alunoId !== aluno.id) {
       return {
         success: false,
         statusCode: 403,
@@ -130,7 +142,7 @@ export class SituacaoVidaService {
       };
     }
 
-    const registro = await SituacaoVidaRepository.findByAlunoId(alunoId);
+    const registro = await SituacaoVidaRepository.findByAlunoId(aluno.id);
 
     return {
       success: true,
@@ -140,4 +152,3 @@ export class SituacaoVidaService {
     };
   }
 }
-

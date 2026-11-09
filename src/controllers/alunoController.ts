@@ -143,17 +143,6 @@ export class AlunoController {
     public static async salvarIdentificacaoPessoal(req: AuthRequest, res: Response): Promise<Response> {
         try {
             const authId = req.user!.id;
-            const idTranslate = await AlunoService.getAlunoIdByAuthId(authId)
-
-            if (!idTranslate.success || idTranslate.alunoId === undefined) {
-                return res.status(404).json({
-                    success: false,
-                    message: idTranslate.message || "Aluno não encontrado."
-                })
-            }
-
-            const alunoId = idTranslate.alunoId;
-
             const {
                 nome,
                 cpf,
@@ -175,7 +164,6 @@ export class AlunoController {
                 tipoDeficienciaOutro
             } = req.body;
 
-
             const dados: IdentificacaoPessoalData = {
                 nome, cpf, rg, dataNasc, telefone, emailContato,
                 tipoResponsavel, tipoResponsavelOutro, nomeResponsavel,
@@ -184,14 +172,12 @@ export class AlunoController {
                 etniaRaca, estadoCivil, tipoDeficiencia, tipoDeficienciaOutro
             };
 
-            const result = await AlunoService.salvarIdentificacaoPessoal(alunoId, dados);
-
-
-            const status = result.success ? 200 : 400
+            const result = await AlunoService.salvarIdentificacaoPessoal(authId, dados);
+            const status = result.success ? 200 : 400;
 
             return res
                 .status(status)
-                .json(result)
+                .json(result);
         } catch (error: any) {
             return res.status(500).json({ success: false, message: error.message });
         }
@@ -200,16 +186,6 @@ export class AlunoController {
     public static async salvarDadosAcademicos(req: AuthRequest, res: Response): Promise<Response> {
         try {
             const authId = req.user!.id;
-            const idTranslate = await AlunoService.getAlunoIdByAuthId(authId);
-
-            if (!idTranslate.success || idTranslate.alunoId === undefined) {
-                return res.status(404).json({
-                    success: false,
-                    message: idTranslate.message || "Aluno não encontrado."
-                });
-            }
-
-            const alunoId = idTranslate.alunoId;
             const {
                 matricula,
                 curso,
@@ -232,7 +208,7 @@ export class AlunoController {
                 auxilioGraduacaoDescricao
             };
 
-            const result = await AlunoService.salvarDadosAcademicos(alunoId, dados);
+            const result = await AlunoService.salvarDadosAcademicos(authId, dados);
             const status = result.success ? 200 : 400;
 
             return res.status(status).json(result);

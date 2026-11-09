@@ -29,8 +29,74 @@ const router = Router();
  *         description: Solicitação criada em estado de rascunho
  *       200:
  *         description: Rascunho anterior recuperado
- */
+*/
 router.post("/", authenticate, requireAluno, SolicitacaoController.iniciarSolicitacao);
+
+/**
+ * @openapi
+ * /solicitacao/{id}/identificacao-pessoal:
+ *   post:
+ *     summary: Salvar ou atualizar identificação pessoal do aluno no fluxo da solicitação (Passo 1/8)
+ *     tags: [Solicitação]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: ID da solicitação
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nome: { type: string, description: "Apenas letras e espaços", example: "João da Silva" }
+ *               cpf: { type: string, description: "Aceita máscara; validado pelos dígitos verificadores", example: "529.982.247-25" }
+ *               rg: { type: string, description: "Letras e números; aceita ponto e hífen", example: "12.345.678-9" }
+ *               dataNasc: { type: string, description: "Formato DD/MM/AAAA; entre 14 e 100 anos, sem datas futuras", example: "15/03/2005" }
+ *               telefone: { type: string, description: "DDD + número; aceita máscara", example: "(88) 91234-5678" }
+ *               emailContato: { type: string, description: "E-mail institucional com domínio @*.ufc.br", example: "aluno@alu.ufc.br" }
+ *               tipoResponsavel:
+ *                 type: string
+ *                 enum: [PAI, MAE, PROPRIO, OUTRO]
+ *               tipoResponsavelOutro: { type: string, description: "Obrigatório quando tipoResponsavel for OUTRO", example: "Tio" }
+ *               nomeResponsavel: { type: string, description: "Apenas letras e espaços", example: "Maria da Silva" }
+ *               sexo:
+ *                 type: string
+ *                 enum: [MASCULINO, FEMININO, NAO_INFORMAR]
+ *               identidadeGenero:
+ *                 type: string
+ *                 enum: [MULHER_CISGENERO, HOMEM_CISGENERO, MULHER_TRANSGENERA, HOMEM_TRANSGENERO, NAO_BINARIO, OUTRO, NAO_INFORMAR]
+ *               identidadeGeneroOutro: { type: string, description: "Obrigatório quando identidadeGenero for OUTRO" }
+ *               orientacaoSexual:
+ *                 type: string
+ *                 enum: [HETEROSEXUAL, HOMOSSEXUAL, BISEXUAL, PANSEXUAL, ASSEXUAL, OUTRO, NAO_INFORMAR]
+ *               orientacaoSexualOutro: { type: string, description: "Obrigatório quando orientacaoSexual for OUTRO" }
+ *               etniaRaca:
+ *                 type: string
+ *                 enum: [BRANCO, PRETO, PRETO_QUILOMBOLA, PRETO_NAO_QUILOMBOLA, PARDO, AMARELO, INDIGENA, NAO_INFORMAR, NAO_DECLARAR]
+ *               estadoCivil:
+ *                 type: string
+ *                 enum: [SOLTEIRO, CASADO, SEPARADO, DIVORCIADO, VIUVO, UNIAO_ESTAVEL]
+ *               tipoDeficiencia:
+ *                 type: string
+ *                 enum: [NAO_POSSUI, ALTAS_HABILIDADES_SUPERDOTACAO, BAIXA_VISAO, CEGUEIRA, AUDITIVA, FISICA, INTELECTUAL, MENTAL, MULTIPLA, SENSORIAL, SINDROME_ASPERGER, TEA, TRANSTORNO_GLOBAL_DESENVOLVIMENTO, OUTRA]
+ *               tipoDeficienciaOutro: { type: string, description: "Obrigatório quando tipoDeficiencia for OUTRA (atenção: OUTRA, não OUTRO)" }
+ *     responses:
+ *       200:
+ *         description: Identificação pessoal salva com sucesso
+ *       400:
+ *         description: Dados inválidos
+ *       403:
+ *         description: Não autorizado a alterar esta solicitação
+ *       404:
+ *         description: Solicitação ou aluno não encontrado
+ */
+router.post("/:id/identificacao-pessoal", authenticate, requireAluno, SolicitacaoController.salvarIdentificacaoPessoal);
+router.patch("/:id/identificacao-pessoal", authenticate, requireAluno, SolicitacaoController.salvarIdentificacaoPessoal);
 
 /**
  * @openapi
@@ -87,39 +153,6 @@ router.post("/:id/endereco", authenticate, requireAluno, SolicitacaoController.s
 // Se quiser suportar PUT/PATCH para seguir a boa prática da dica do dev:
 router.patch("/:id/endereco", authenticate, requireAluno, SolicitacaoController.salvarEndereco);
 
-/**
- * @openapi
- * /solicitacao/{id}/identificacao-pessoal:
- *   post:
- *     summary: Salvar ou atualizar identificação pessoal do aluno no fluxo da solicitação (Passo 1/8)
- *     tags: [Solicitação]
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema: { type: integer }
- *         description: ID da solicitação
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             description: Todos os campos são opcionais para suportar rascunho
- *     responses:
- *       200:
- *         description: Identificação pessoal salva com sucesso
- *       400:
- *         description: Dados inválidos
- *       403:
- *         description: Não autorizado a alterar esta solicitação
- *       404:
- *         description: Solicitação ou aluno não encontrado
- */
-router.post("/:id/identificacao-pessoal", authenticate, requireAluno, SolicitacaoController.salvarIdentificacaoPessoal);
-router.patch("/:id/identificacao-pessoal", authenticate, requireAluno, SolicitacaoController.salvarIdentificacaoPessoal);
 
 /**
  * @openapi
