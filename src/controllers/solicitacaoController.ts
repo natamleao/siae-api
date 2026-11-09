@@ -39,6 +39,24 @@ export class SolicitacaoController {
     }
   }
 
+  public static async obterIdentificacaoPessoal(req: AuthRequest, res: Response): Promise<Response> {
+    try {
+      const authId = req.user!.id;
+      const solicitacaoId = Number(req.params.id);
+
+      if (isNaN(solicitacaoId) || solicitacaoId <= 0) {
+        return res.status(400).json({ success: false, message: "ID de solicitação inválido." });
+      }
+
+      const result = await SolicitacaoService.obterIdentificacaoPessoal(solicitacaoId, authId);
+      const status = result.statusCode || (result.success ? 200 : 400);
+
+      return res.status(status).json(result);
+    } catch (error: any) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
   public static async salvarDadosAcademicos(req: AuthRequest, res: Response): Promise<Response> {
     try {
       const authId = req.user!.id;
@@ -49,6 +67,24 @@ export class SolicitacaoController {
       }
 
       const result = await SolicitacaoService.salvarDadosAcademicos(solicitacaoId, authId, req.body);
+      const status = result.statusCode || (result.success ? 200 : 400);
+
+      return res.status(status).json(result);
+    } catch (error: any) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  public static async obterDadosAcademicos(req: AuthRequest, res: Response): Promise<Response> {
+    try {
+      const authId = req.user!.id;
+      const solicitacaoId = Number(req.params.id);
+
+      if (isNaN(solicitacaoId) || solicitacaoId <= 0) {
+        return res.status(400).json({ success: false, message: "ID de solicitação inválido." });
+      }
+
+      const result = await SolicitacaoService.obterDadosAcademicos(solicitacaoId, authId);
       const status = result.statusCode || (result.success ? 200 : 400);
 
       return res.status(status).json(result);
@@ -90,6 +126,26 @@ export class SolicitacaoController {
         payload
       );
 
+      return res.status(result.statusCode).json({
+        success: result.success,
+        message: result.message,
+        ...("data" in result && { data: result.data }),
+      });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  public static async obterEndereco(req: AuthRequest, res: Response): Promise<Response> {
+    try {
+      const authId = req.user!.id;
+      const solicitacaoId = Number(req.params.id);
+
+      if (isNaN(solicitacaoId) || solicitacaoId <= 0) {
+        return res.status(400).json({ success: false, message: "ID de solicitação inválido." });
+      }
+
+      const result = await EnderecoService.obterEnderecoSolicitacao(solicitacaoId, authId);
       return res.status(result.statusCode).json({
         success: result.success,
         message: result.message,
@@ -200,6 +256,53 @@ export class SolicitacaoController {
       }
 
       const result = await SolicitacaoService.obterRelato(solicitacaoId, authId);
+
+      return res.status(result.statusCode).json({
+        success: result.success,
+        message: result.message,
+        ...("data" in result && { data: result.data }),
+      });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  public static async obterPorId(req: AuthRequest, res: Response): Promise<Response> {
+    try {
+      const solicitacaoId = Number(req.params.id);
+
+      if (isNaN(solicitacaoId) || solicitacaoId <= 0) {
+        return res.status(400).json({ success: false, message: "ID de solicitação inválido." });
+      }
+
+      const result = await SolicitacaoService.obterSolicitacaoPorId(solicitacaoId);
+      return res.status(result.statusCode).json({
+        success: result.success,
+        message: result.message,
+        ...("data" in result && { data: result.data }),
+      });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  public static async listar(req: AuthRequest, res: Response): Promise<Response> {
+    try {
+      const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
+      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 10;
+      const auxilioId = req.query.auxilioId ? parseInt(req.query.auxilioId as string, 10) : undefined;
+      const alunoId = req.query.alunoId ? parseInt(req.query.alunoId as string, 10) : undefined;
+      const status = req.query.status as any;
+
+      if (isNaN(page) || page <= 0 || isNaN(limit) || limit <= 0) {
+        return res.status(400).json({ success: false, message: "Parâmetros de paginação inválidos." });
+      }
+
+      const result = await SolicitacaoService.listarSolicitacoes(page, limit, {
+        status,
+        auxilioId: isNaN(auxilioId as number) ? undefined : auxilioId,
+        alunoId: isNaN(alunoId as number) ? undefined : alunoId,
+      });
 
       return res.status(result.statusCode).json({
         success: result.success,

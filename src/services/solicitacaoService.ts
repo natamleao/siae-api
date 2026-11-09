@@ -3,6 +3,7 @@ import { AuxilioRepository } from "../repository/auxilioRepository";
 import { AlunoRepository } from "../repository/alunoRepository";
 import { AlunoService } from "./alunoService";
 import { IdentificacaoPessoalData, DadosAcademicosData } from "../models/alunoModel";
+import { StatusSolicitacao } from "@prisma/client";
 
 export class SolicitacaoService {
   public static async iniciarSolicitacao(authId: number, auxilioId: number) {
@@ -83,6 +84,40 @@ export class SolicitacaoService {
     };
   }
 
+  public static async obterIdentificacaoPessoal(solicitacaoId: number, authId: number) {
+    const acesso = await SolicitacaoService.validarAcessoSolicitacao(solicitacaoId, authId);
+    if (!acesso.success || !acesso.aluno) {
+      return acesso;
+    }
+
+    const aluno = acesso.aluno;
+    return {
+      success: true,
+      statusCode: 200,
+      message: "Identificação pessoal obtida com sucesso.",
+      data: {
+        nome: aluno.nome,
+        cpf: aluno.cpf,
+        rg: aluno.rg,
+        dataNasc: aluno.dataNasc,
+        telefone: aluno.telefone,
+        emailContato: aluno.emailContato,
+        tipoResponsavel: aluno.tipoResponsavel,
+        tipoResponsavelOutro: aluno.tipoResponsavelOutro,
+        nomeResponsavel: aluno.nomeResponsavel,
+        sexo: aluno.sexo,
+        identidadeGenero: aluno.identidadeGenero,
+        identidadeGeneroOutro: aluno.identidadeGeneroOutro,
+        orientacaoSexual: aluno.orientacaoSexual,
+        orientacaoSexualOutro: aluno.orientacaoSexualOutro,
+        etniaRaca: aluno.etniaRaca,
+        estadoCivil: aluno.estadoCivil,
+        tipoDeficiencia: aluno.tipoDeficiencia,
+        tipoDeficienciaOutro: aluno.tipoDeficienciaOutro,
+      },
+    };
+  }
+
   public static async salvarDadosAcademicos(
     solicitacaoId: number,
     authId: number,
@@ -97,6 +132,30 @@ export class SolicitacaoService {
     return {
       ...result,
       statusCode: result.success ? 200 : 400,
+    };
+  }
+
+  public static async obterDadosAcademicos(solicitacaoId: number, authId: number) {
+    const acesso = await SolicitacaoService.validarAcessoSolicitacao(solicitacaoId, authId);
+    if (!acesso.success || !acesso.aluno) {
+      return acesso;
+    }
+
+    const aluno = acesso.aluno;
+    return {
+      success: true,
+      statusCode: 200,
+      message: "Dados acadêmicos obtidos com sucesso.",
+      data: {
+        matricula: aluno.matricula,
+        curso: aluno.curso,
+        turno: aluno.turno,
+        tipoIngresso: aluno.tipoIngresso,
+        anoIngresso: aluno.anoIngresso,
+        semestreAtual: aluno.semestreAtual,
+        recebeuAuxilioGraduacao: aluno.recebeuAuxilioGraduacao,
+        auxilioGraduacaoDescricao: aluno.auxilioGraduacaoDescricao,
+      },
     };
   }
 
@@ -168,6 +227,34 @@ export class SolicitacaoService {
         id: solicitacao.id,
         relato: solicitacao.relato,
       },
+    };
+  }
+
+  public static async obterSolicitacaoPorId(solicitacaoId: number) {
+    const solicitacao = await SolicitacaoRepository.findByIdWithDetails(solicitacaoId);
+    if (!solicitacao) {
+      return { success: false, statusCode: 404, message: "Solicitação não encontrada." };
+    }
+
+    return {
+      success: true,
+      statusCode: 200,
+      message: "Solicitação obtida com sucesso.",
+      data: solicitacao,
+    };
+  }
+
+  public static async listarSolicitacoes(
+    page: number = 1,
+    limit: number = 10,
+    filters?: { status?: StatusSolicitacao; auxilioId?: number; alunoId?: number }
+  ) {
+    const result = await SolicitacaoRepository.findAll(page, limit, filters);
+    return {
+      success: true,
+      statusCode: 200,
+      message: "Solicitações recuperadas com sucesso.",
+      data: result,
     };
   }
 }

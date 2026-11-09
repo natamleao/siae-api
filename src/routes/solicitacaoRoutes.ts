@@ -1,8 +1,12 @@
 import { Router } from "express";
-import { authenticate, requireAluno } from "../middleware/authMiddleware";
+import { authenticate, requireAluno, requireFuncionario } from "../middleware/authMiddleware";
 import { SolicitacaoController } from "../controllers/solicitacaoController";
 
 const router = Router();
+
+// =====================================================================================
+// POST
+// =====================================================================================
 
 /**
  * @openapi
@@ -25,11 +29,11 @@ const router = Router();
  *                 type: integer
  *                 example: 1
  *     responses:
- *       201:
- *         description: Solicitação criada em estado de rascunho
  *       200:
  *         description: Rascunho anterior recuperado
-*/
+ *       201:
+ *         description: Solicitação criada em estado de rascunho
+ */
 router.post("/", authenticate, requireAluno, SolicitacaoController.iniciarSolicitacao);
 
 /**
@@ -96,7 +100,6 @@ router.post("/", authenticate, requireAluno, SolicitacaoController.iniciarSolici
  *         description: Solicitação ou aluno não encontrado
  */
 router.post("/:id/identificacao-pessoal", authenticate, requireAluno, SolicitacaoController.salvarIdentificacaoPessoal);
-router.patch("/:id/identificacao-pessoal", authenticate, requireAluno, SolicitacaoController.salvarIdentificacaoPessoal);
 
 /**
  * @openapi
@@ -138,7 +141,7 @@ router.patch("/:id/identificacao-pessoal", authenticate, requireAluno, Solicitac
  *               bairro: { type: string, example: "Centro" }
  *               municipio: { type: string, example: "Natal" }
  *               estado: { type: string, example: "RN" }
- *               origemFamilia: {type: string, example: "Limoeiro do Norte"}
+ *               origemFamilia: { type: string, example: "Limoeiro do Norte" }
  *     responses:
  *       200:
  *         description: Endereço salvo com sucesso
@@ -150,9 +153,6 @@ router.patch("/:id/identificacao-pessoal", authenticate, requireAluno, Solicitac
  *         description: Solicitação ou aluno não encontrado
  */
 router.post("/:id/endereco", authenticate, requireAluno, SolicitacaoController.salvarEndereco);
-// Se quiser suportar PUT/PATCH para seguir a boa prática da dica do dev:
-router.patch("/:id/endereco", authenticate, requireAluno, SolicitacaoController.salvarEndereco);
-
 
 /**
  * @openapi
@@ -193,7 +193,6 @@ router.patch("/:id/endereco", authenticate, requireAluno, SolicitacaoController.
  *         description: Solicitação ou aluno não encontrado
  */
 router.post("/:id/dados-academicos", authenticate, requireAluno, SolicitacaoController.salvarDadosAcademicos);
-router.patch("/:id/dados-academicos", authenticate, requireAluno, SolicitacaoController.salvarDadosAcademicos);
 
 /**
  * @openapi
@@ -268,54 +267,8 @@ router.patch("/:id/dados-academicos", authenticate, requireAluno, SolicitacaoCon
  *         description: Não autorizado a alterar esta solicitação
  *       404:
  *         description: Solicitação ou aluno não encontrado
- *   put:
- *     summary: Atualizar situações que podem impactar a vida do aluno (Passo 6/8)
- *     tags: [Solicitação]
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema: { type: integer }
- *         description: ID da solicitação
- *     requestBody:
- *       required: false
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/paths/~1solicitacao~1{id}~1situacoes-vida/post/requestBody/content/application~1json/schema'
- *     responses:
- *       200:
- *         description: Situações de vida salvas com sucesso
- *       400:
- *         description: Dados inválidos
- *       403:
- *         description: Não autorizado a alterar esta solicitação
- *       404:
- *         description: Solicitação ou aluno não encontrado
- *   get:
- *     summary: Obter situações que podem impactar a vida salvas pelo aluno (Passo 6/8)
- *     tags: [Solicitação]
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema: { type: integer }
- *         description: ID da solicitação
- *     responses:
- *       200:
- *         description: Dados retornados com sucesso
- *       403:
- *         description: Não autorizado a visualizar esta solicitação
- *       404:
- *         description: Solicitação ou aluno não encontrado
  */
 router.post("/:id/situacoes-vida", authenticate, requireAluno, SolicitacaoController.salvarSituacoesVida);
-router.put("/:id/situacoes-vida", authenticate, requireAluno, SolicitacaoController.salvarSituacoesVida);
-router.get("/:id/situacoes-vida", authenticate, requireAluno, SolicitacaoController.obterSituacoesVida);
 
 /**
  * @openapi
@@ -357,6 +310,352 @@ router.get("/:id/situacoes-vida", authenticate, requireAluno, SolicitacaoControl
  *         description: Não autorizado a alterar esta solicitação
  *       404:
  *         description: Solicitação não encontrada
+ */
+router.post("/:id/relato", authenticate, requireAluno, SolicitacaoController.salvarRelato);
+
+// =====================================================================================
+// GET
+// =====================================================================================
+
+/**
+ * @openapi
+ * /solicitacao:
+ *   get:
+ *     summary: Listar solicitações de auxílio paginadas com filtros (somente funcionários e admin)
+ *     tags: [Solicitação]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *         description: Número da página
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 10 }
+ *         description: Quantidade de registros por página
+ *       - in: query
+ *         name: status
+ *         schema: { type: string, enum: [RASCUNHO, PENDENTE, EM_ANALISE, DEFERIDO, INDEFERIDO] }
+ *         description: Filtrar por status da solicitação
+ *       - in: query
+ *         name: auxilioId
+ *         schema: { type: integer }
+ *         description: Filtrar por ID do auxílio
+ *       - in: query
+ *         name: alunoId
+ *         schema: { type: integer }
+ *         description: Filtrar por ID do aluno
+ *     responses:
+ *       200:
+ *         description: Lista de solicitações retornada com sucesso
+ *       400:
+ *         description: Parâmetros de paginação inválidos
+ *       401:
+ *         description: Não autenticado
+ *       403:
+ *         description: Acesso negado (Requer permissão de funcionário ou admin)
+ */
+router.get("/", authenticate, requireFuncionario, SolicitacaoController.listar);
+
+/**
+ * @openapi
+ * /solicitacao/{id}:
+ *   get:
+ *     summary: Obter dados detalhados de uma solicitação por ID (somente funcionários e admin)
+ *     tags: [Solicitação]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: ID da solicitação
+ *     responses:
+ *       200:
+ *         description: Solicitação retornada com sucesso
+ *       400:
+ *         description: ID de solicitação inválido
+ *       401:
+ *         description: Não autenticado
+ *       403:
+ *         description: Acesso negado (Requer permissão de funcionário ou admin)
+ *       404:
+ *         description: Solicitação não encontrada
+ */
+router.get("/:id", authenticate, requireFuncionario, SolicitacaoController.obterPorId);
+
+/**
+ * @openapi
+ * /solicitacao/{id}/identificacao-pessoal:
+ *   get:
+ *     summary: Obter dados de identificação pessoal do aluno no fluxo da solicitação (Passo 1/8)
+ *     tags: [Solicitação]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: ID da solicitação
+ *     responses:
+ *       200:
+ *         description: Identificação pessoal obtida com sucesso
+ *       400:
+ *         description: ID de solicitação inválido
+ *       401:
+ *         description: Não autenticado
+ *       403:
+ *         description: Não autorizado a visualizar esta solicitação
+ *       404:
+ *         description: Solicitação ou aluno não encontrado
+ */
+router.get("/:id/identificacao-pessoal", authenticate, requireAluno, SolicitacaoController.obterIdentificacaoPessoal);
+
+/**
+ * @openapi
+ * /solicitacao/{id}/endereco:
+ *   get:
+ *     summary: Obter endereço do aluno no fluxo da solicitação (Passo 2/8)
+ *     tags: [Solicitação]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: ID da solicitação
+ *     responses:
+ *       200:
+ *         description: Endereço retornado com sucesso
+ *       400:
+ *         description: ID de solicitação inválido
+ *       401:
+ *         description: Não autenticado
+ *       403:
+ *         description: Não autorizado a visualizar esta solicitação
+ *       404:
+ *         description: Solicitação ou aluno não encontrado
+ */
+router.get("/:id/endereco", authenticate, requireAluno, SolicitacaoController.obterEndereco);
+
+/**
+ * @openapi
+ * /solicitacao/{id}/dados-academicos:
+ *   get:
+ *     summary: Obter dados acadêmicos do aluno no fluxo da solicitação (Passo 3/8)
+ *     tags: [Solicitação]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: ID da solicitação
+ *     responses:
+ *       200:
+ *         description: Dados acadêmicos retornados com sucesso
+ *       400:
+ *         description: ID de solicitação inválido
+ *       401:
+ *         description: Não autenticado
+ *       403:
+ *         description: Não autorizado a visualizar esta solicitação
+ *       404:
+ *         description: Solicitação ou aluno não encontrado
+ */
+router.get("/:id/dados-academicos", authenticate, requireAluno, SolicitacaoController.obterDadosAcademicos);
+
+/**
+ * @openapi
+ * /solicitacao/{id}/situacoes-vida:
+ *   get:
+ *     summary: Obter situações que podem impactar a vida salvas pelo aluno (Passo 6/8)
+ *     tags: [Solicitação]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: ID da solicitação
+ *     responses:
+ *       200:
+ *         description: Dados retornados com sucesso
+ *       403:
+ *         description: Não autorizado a visualizar esta solicitação
+ *       404:
+ *         description: Solicitação ou aluno não encontrado
+ */
+router.get("/:id/situacoes-vida", authenticate, requireAluno, SolicitacaoController.obterSituacoesVida);
+
+/**
+ * @openapi
+ * /solicitacao/{id}/relato:
+ *   get:
+ *     summary: Obter o relato pessoal da solicitação (Passo 7/8)
+ *     tags: [Solicitação]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: ID da solicitação
+ *     responses:
+ *       200:
+ *         description: Relato pessoal recuperado com sucesso
+ *       403:
+ *         description: Não autorizado a visualizar esta solicitação
+ *       404:
+ *         description: Solicitação não encontrada
+ */
+router.get("/:id/relato", authenticate, requireAluno, SolicitacaoController.obterRelato);
+
+// =====================================================================================
+// PATCH / PUT
+// =====================================================================================
+
+/**
+ * @openapi
+ * /solicitacao/{id}/identificacao-pessoal:
+ *   patch:
+ *     summary: Atualizar identificação pessoal do aluno no fluxo da solicitação (Passo 1/8)
+ *     tags: [Solicitação]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: ID da solicitação
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/paths/~1solicitacao~1{id}~1identificacao-pessoal/post/requestBody/content/application~1json/schema'
+ *     responses:
+ *       200:
+ *         description: Identificação pessoal atualizada com sucesso
+ *       400:
+ *         description: Dados inválidos
+ *       403:
+ *         description: Não autorizado a alterar esta solicitação
+ *       404:
+ *         description: Solicitação ou aluno não encontrado
+ */
+router.patch("/:id/identificacao-pessoal", authenticate, requireAluno, SolicitacaoController.salvarIdentificacaoPessoal);
+
+/**
+ * @openapi
+ * /solicitacao/{id}/endereco:
+ *   patch:
+ *     summary: Atualizar endereço do aluno no fluxo da solicitação (Passo 2/8)
+ *     tags: [Solicitação]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: ID da solicitação
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/paths/~1solicitacao~1{id}~1endereco/post/requestBody/content/application~1json/schema'
+ *     responses:
+ *       200:
+ *         description: Endereço atualizado com sucesso
+ *       400:
+ *         description: Dados inválidos
+ *       403:
+ *         description: Não autorizado a alterar esta solicitação
+ *       404:
+ *         description: Solicitação ou aluno não encontrado
+ */
+router.patch("/:id/endereco", authenticate, requireAluno, SolicitacaoController.salvarEndereco);
+
+/**
+ * @openapi
+ * /solicitacao/{id}/dados-academicos:
+ *   patch:
+ *     summary: Atualizar dados acadêmicos do aluno no fluxo da solicitação (Passo 3/8)
+ *     tags: [Solicitação]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: ID da solicitação
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/paths/~1solicitacao~1{id}~1dados-academicos/post/requestBody/content/application~1json/schema'
+ *     responses:
+ *       200:
+ *         description: Dados acadêmicos atualizados com sucesso
+ *       400:
+ *         description: Dados inválidos
+ *       403:
+ *         description: Não autorizado a alterar esta solicitação
+ *       404:
+ *         description: Solicitação ou aluno não encontrado
+ */
+router.patch("/:id/dados-academicos", authenticate, requireAluno, SolicitacaoController.salvarDadosAcademicos);
+
+/**
+ * @openapi
+ * /solicitacao/{id}/situacoes-vida:
+ *   put:
+ *     summary: Atualizar situações que podem impactar a vida do aluno (Passo 6/8)
+ *     tags: [Solicitação]
+ *     description: >
+ *       Atualiza as respostas da Seção 6. Todas as perguntas são opcionais.
+ *       Campos com texto descritivo (Outro/Outra) são limpos caso a respectiva opção não esteja marcada.
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: ID da solicitação
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/paths/~1solicitacao~1{id}~1situacoes-vida/post/requestBody/content/application~1json/schema'
+ *     responses:
+ *       200:
+ *         description: Situações de vida atualizadas com sucesso
+ *       400:
+ *         description: Dados inválidos
+ *       403:
+ *         description: Não autorizado a alterar esta solicitação
+ *       404:
+ *         description: Solicitação ou aluno não encontrado
+ */
+router.put("/:id/situacoes-vida", authenticate, requireAluno, SolicitacaoController.salvarSituacoesVida);
+
+/**
+ * @openapi
+ * /solicitacao/{id}/relato:
  *   put:
  *     summary: Atualizar o relato pessoal da solicitação (Passo 7/8)
  *     tags: [Solicitação]
@@ -383,26 +682,7 @@ router.get("/:id/situacoes-vida", authenticate, requireAluno, SolicitacaoControl
  *         description: Não autorizado a alterar esta solicitação
  *       404:
  *         description: Solicitação não encontrada
- *   get:
- *     summary: Obter o relato pessoal da solicitação (Passo 7/8)
- *     tags: [Solicitação]
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema: { type: integer }
- *         description: ID da solicitação
- *     responses:
- *       200:
- *         description: Relato pessoal recuperado com sucesso
- *       403:
- *         description: Não autorizado a visualizar esta solicitação
- *       404:
- *         description: Solicitação não encontrada
  */
-router.post("/:id/relato", authenticate, requireAluno, SolicitacaoController.salvarRelato);
 router.put("/:id/relato", authenticate, requireAluno, SolicitacaoController.salvarRelato);
-router.get("/:id/relato", authenticate, requireAluno, SolicitacaoController.obterRelato);
+
 export default router;

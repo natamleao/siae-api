@@ -85,4 +85,33 @@ export class EnderecoService {
       data: enderecoSalvo,
     };
   }
+
+  public static async obterEnderecoSolicitacao(solicitacaoId: number, authId: number) {
+    const aluno = await AlunoRepository.findAlunoByAuthId(authId);
+    if (!aluno) {
+      return { success: false, statusCode: 404, message: "Aluno não encontrado." };
+    }
+
+    const solicitacao = await SolicitacaoRepository.findById(solicitacaoId);
+    if (!solicitacao) {
+      return { success: false, statusCode: 404, message: "Solicitação não encontrada." };
+    }
+
+    if (solicitacao.alunoId !== aluno.id) {
+      return {
+        success: false,
+        statusCode: 403,
+        message: "Você não tem permissão para visualizar esta solicitação.",
+      };
+    }
+
+    const endereco = await EnderecoRepository.findEnderecoByAlunoId(aluno.id);
+
+    return {
+      success: true,
+      statusCode: 200,
+      message: "Endereço obtido com sucesso.",
+      data: endereco,
+    };
+  }
 }
