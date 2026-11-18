@@ -3,12 +3,17 @@ import { AuthRepository } from "../repository/authRepository";
 import { FuncionarioRepository } from "../repository/funcionarioRepository";
 import { RegisterFuncionarioData } from "../models/FuncionarioModel";
 import { Permissao } from '../enums/permissions';
+import { validatePassword } from '../utils/passwordValidator';
 
 export class FuncionarioService {
     public static async registerFuncionario(
         data: RegisterFuncionarioData,
         adminId: number
     ) {
+        if (!validatePassword(data.senha)) {
+            return { success: false, message: 'Senha deve possuir entre 8 e 16 caracteres' }
+        }
+
         const admin = await AuthRepository.findAuthById(adminId);
         if (!admin || (admin.permissao !== Permissao.ADMIN && admin.permissao !== Permissao.ALUNO_ADMIN)) {
             return { success: false, message: 'Apenas ADMIN pode cadastrar funcionários' };

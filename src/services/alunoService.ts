@@ -2,6 +2,7 @@ import { IdentificacaoPessoalData, RegisterAlunoData, DadosAcademicosData } from
 import { AlunoRepository } from "../repository/alunoRepository";
 import { AuthRepository } from "../repository/authRepository";
 import { generateToken } from "./authService";
+import { validatePassword } from '../utils/passwordValidator';
 
 import {
     validateCPF,
@@ -78,8 +79,8 @@ export class AlunoService {
             return { success: false, message: 'Nome deve ter entre 1 e 50 caracteres' }
         }
 
-        if (data.senha.length < 6) {
-            return { success: false, message: 'Senha deve ter no mínimo 6 caracteres' }
+        if (!validatePassword(data.senha)) {
+            return { success: false, message: 'Senha deve possuir entre 8 e 16 caracteres' }
         }
 
         if (regexNumbVerification.test(data.matricula) == false) {
@@ -97,7 +98,7 @@ export class AlunoService {
 
     }
 
- 
+
     public static async getMeusDados(authId: number) {
         const dadosAluno = await AlunoRepository.findAlunoByAuthId(authId);
         if (!dadosAluno) {

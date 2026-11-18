@@ -64,7 +64,7 @@ SEED_ALUNO_ADMIN_EMAIL=alunoadmin@siae.br
 SEED_ALUNO_ADMIN_PASSWORD=outra_senha_segura
 ```
 
-As duas senhas devem ter pelo menos 12 caracteres. Os endereços de e-mail devem ser diferentes.
+As duas senhas devem possuir entre 8 e 16 caracteres, inclusive. Os endereços de e-mail devem ser diferentes.
 
 **Importante:** o arquivo `.env` contém informações privadas e não deve ser enviado ao Git.
 
@@ -433,6 +433,6 @@ Se houver migrations pendentes, aplique-as com `pnpm db:migrate:deploy`, certifi
 - O arquivo `.env` não deve ser versionado.
 - As migrations devem ser mantidas no Git.
 - O seed deve ser executado somente depois das migrations.
-- As senhas do seed devem ser fortes e possuir pelo menos 12 caracteres.
+- As senhas do seed devem possuir entre 8 e 16 caracteres, inclusive.
 - Os comandos de desenvolvimento e produção devem utilizar as respectivas URLs de conexão.
 - Antes de executar operações no banco, confirme sempre o ambiente de destino.

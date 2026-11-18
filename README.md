@@ -59,7 +59,7 @@ Edite o arquivo `.env` e configure principalmente:
 - `SEED_ADMIN_EMAIL` e `SEED_ADMIN_PASSWORD`: credenciais do administrador.
 - `SEED_ALUNO_ADMIN_EMAIL` e `SEED_ALUNO_ADMIN_PASSWORD`: credenciais do aluno administrador.
 
-As duas senhas utilizadas pelo seed devem possuir pelo menos 12 caracteres. Utilize e-mails diferentes para as duas contas.
+As duas senhas utilizadas pelo seed devem possuir entre 8 e 16 caracteres, inclusive. Utilize e-mails diferentes para as duas contas.
 
 Configure também as variáveis de e-mail caso precise utilizar o envio de mensagens.
 

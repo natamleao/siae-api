@@ -5,6 +5,7 @@ import { ForgotPasswordData, ResetPasswordData, LoginData, RegisterData, AuthRes
 import { Auth } from '@prisma/client';
 import crypto from 'crypto';
 import { EmailService } from './emailService';
+import { validatePassword } from '../utils/passwordValidator';
 
 const RESET_TOKEN_EXPIRY_MINUTES = 5;
 const JWT_SECRET = process.env.JWT_SECRET || 'KEY';
@@ -51,8 +52,8 @@ export class AuthService {
     public static async resetPassword(data: ResetPasswordData): Promise<AuthResult> {
         const { token, newPassword } = data;
 
-        if (newPassword.length < 6) {
-            return { success: false, message: 'A senha deve ter pelo menos 6 caracteres' };
+        if (!validatePassword(newPassword)) {
+            return { success: false, message: 'Senha deve possuir entre 8 e 16 caracteres' };
         }
 
         const user = await AuthRepository.findAuthByResetToken(token);
@@ -92,6 +93,13 @@ export class AuthService {
 
     public static async register(data: RegisterData): Promise<AuthResult> {
         const { email, password, permissao } = data;
+
+        if (!validatePassword(password)) {
+            return {
+                success: false,
+                message: 'A senha deve possuir entre 8 e 16 caracteres'
+            };
+        }
 
         const existing = await AuthRepository.findAuthByEmail(email);
         if (existing) {
