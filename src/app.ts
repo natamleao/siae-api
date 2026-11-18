@@ -15,10 +15,20 @@ import auxilioRoutes from "./routes/auxilioRoutes";
 const PORT = process.env.PORT || 3000;
 const app = express();
 
+const allowedOrigins = (
+    process.env.CORS_ORIGIN ||
+    'http://localhost:5173,http://localhost:8080'
+)
+    .split(',')
+    .map(origin => origin.trim())
+    .filter(Boolean);
+
 // Pra rapaizada que for mexer no código, isso aqui não é uma boa
 // prática quando for colocar em produção, ok?
 app.use(cors({
-    origin: process.env.CORS_ORIGIN || '*',
+    origin: (origin, callback) => {
+        callback(null, !origin || allowedOrigins.includes(origin));
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
