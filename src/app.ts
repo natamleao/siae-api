@@ -4,7 +4,6 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./config/swagger";
-import { checkAndSeedDatabase } from "./config/seed";
 import authRoutes from "./routes/authRoutes";
 import funcionarioRoutes from "./routes/funcionarioRoutes";
 import opcoesRoutes from "./routes/opcoesRoutes";
@@ -65,10 +64,9 @@ app.use("/aluno", alunoRoutes);
 app.use("/solicitacao", solicitacaoRoutes);
 app.use("/auxilio", auxilioRoutes);
 
-app.listen(PORT, async () => {
+app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
     console.log(`Documentação Swagger disponível em: http://localhost:${PORT}/docs`);
-    await checkAndSeedDatabase();
 });
 
 export default app;

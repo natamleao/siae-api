@@ -1,29 +1,51 @@
-FROM node:18
+# syntax=docker/dockerfile:1
 
-# Instala pnpm
-RUN npm install -g pnpm
+FROM node:22-bookworm-slim AS base
 
-# Diretório da aplicação
 WORKDIR /app
 
+RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN corepack enable && corepack prepare pnpm@10.18.3 --activate
 
-# Copia arquivos de dependência
-COPY package.json pnpm-lock.yaml ./
+# Dependências
+FROM base AS dependencies
 
-# Instala dependências
-RUN pnpm install
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
-# Copia o resto do projeto
+RUN pnpm install --frozen-lockfile
+
+# Desenvolvimento
+FROM dependencies AS development
+
 COPY . .
 
-# Gera Prisma Client
-RUN npx prisma generate
-# Compila TypeScript (opcional, mas bom para produção)
-# RUN pnpm build (para PRODUÇÃO)
+RUN pnpm exec prisma generate
 
-# Expõe a porta
 EXPOSE 3000
 
-# Comando de inicialização
-# IMPORTANTE: bind em 0.0.0.0
 CMD ["pnpm", "dev"]
+
+# Compilação
+FROM dependencies AS build
+
+COPY . .
+
+RUN pnpm exec prisma generate
+RUN pnpm build
+RUN pnpm prune --prod
+
+# Produção
+FROM base AS production
+
+ENV NODE_ENV=production
+
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/prisma ./prisma
+COPY --from=build /app/package.json ./package.json
+COPY --from=build /app/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=build /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
+
+EXPOSE 3000
+
+CMD ["node", "dist/app.js"]
