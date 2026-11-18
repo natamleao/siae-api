@@ -1,202 +1,438 @@
-# 🚀 Guia de Inicialização do Projeto (Setup Inicial)
+# Guia de configuração do PostgreSQL
 
-Existem **dois fluxos** de trabalho: o **Fluxo 1 (Recomendado via Docker)** onde tudo roda encapsulado, e o **Fluxo 2 (Puro Local - Sem Docker)** para quem prefere rodar o Node localmente na máquina.
+Este guia apresenta três cenários de utilização do banco de dados no SIAE:
+
+1. **Docker (recomendado):** API e PostgreSQL executados em containers.
+2. **Ambiente local:** API e PostgreSQL executados diretamente na máquina.
+3. **pgAdmin:** acesso visual ao PostgreSQL executado no Docker.
+
+Também há uma seção sobre aplicação de migrations no banco de produção (Supabase).
 
 ---
 
-## 🐳 Fluxo 1: Rodando 100% no Docker (Recomendado)
+## 1. Pré-requisitos
 
-Esse é o método mais seguro porque garante que o banco e a API funcionem em qualquer máquina sem conflitos de versões.
+### Para utilizar Docker
 
-### 1. Clonar o repositório e entrar na pasta
+- Git
+- Docker
+- Docker Compose
+
+### Para executar sem Docker
+
+- Node.js 22
+- pnpm 10.18.3
+- PostgreSQL
+
+---
+
+## 2. Fluxo recomendado: API e PostgreSQL no Docker
+
+### 2.1. Clonar o repositório
+
 ```bash
 git clone https://github.com/devsiae-ludi/siae-api.git
 cd siae-api
+````
+
+### **2.2. Configurar as variáveis de ambiente**
+
+Crie o arquivo `.env` na raiz do projeto, utilizando `.env-example` como referência.
+
+A variável `DATABASE_URL` deve apontar para a porta exposta pelo Docker na máquina:
+
+```
+DATABASE_URL="postgresql://siae_user:siae_password@localhost:5433/siae_db?schema=public"
 ```
 
-### 2. Criar o arquivo `.env` na raiz do projeto
-Crie o arquivo `.env` com as seguintes variáveis:
-```env
-DATABASE_URL="postgresql://siae_user:siae_password@localhost:5432/siae_db?schema=public"
-CORS_ORIGIN=http://localhost:5173
-NODE_ENV=development
-JWT_SECRET="SIAEJWTUFC"
+Configure também as demais variáveis necessárias:
 
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=465
-EMAIL_USER="email@exemplo.com"
-EMAIL_PASS="senha_de_app"
+- `CORS_ORIGIN`
+- `NODE_ENV`
+- `JWT_SECRET`
+- `EMAIL_HOST`
+- `EMAIL_PORT`
+- `EMAIL_USER`
+- `EMAIL_PASS`
+
+Para executar o seed inicial, configure também as quatro variáveis:
+
+```
+SEED_ADMIN_EMAIL=admin@siae.br
+SEED_ADMIN_PASSWORD=sua_senha_segura
+SEED_ALUNO_ADMIN_EMAIL=alunoadmin@siae.br
+SEED_ALUNO_ADMIN_PASSWORD=outra_senha_segura
 ```
 
-### 3. Subir os containers do Docker
-Execute o comando para construir a imagem e subir os serviços:
-```bash
+As duas senhas devem ter pelo menos 12 caracteres. Os endereços de e-mail devem ser diferentes.
+
+**Importante:** o arquivo `.env` contém informações privadas e não deve ser enviado ao Git.
+
+### **2.3. Iniciar os containers**
+
+Na raiz do projeto, execute:
+
+```
 docker compose up -d --build
 ```
-> O Docker criará o banco Postgres e a API. No momento em que a API sobe, ela executa automaticamente o `npx prisma db push` para criar as tabelas no banco.
 
-### 4. Criar o usuário Administrador padrão (Seed)
-Execute o script de seed diretamente no container da API:
-```bash
+O Docker iniciará:
+
+- PostgreSQL, no container `siae-postgres`;
+- API, no container `siae-api`.
+
+A API utiliza a URL interna `postgres:5432` para se comunicar com o banco. Já os comandos executados diretamente na máquina utilizam `localhost:5433`.
+
+O projeto não cria ou altera automaticamente as tabelas ao iniciar os containers. É necessário aplicar as migrations.
+
+### **2.4. Aplicar as migrations**
+
+Execute:
+
+```
+docker exec -it siae-api pnpm db:migrate:deploy
+```
+
+Esse comando aplica as migrations existentes no diretório `prisma/migrations`.
+
+Para verificar o estado das migrations:
+
+```
+docker exec -it siae-api pnpm db:migrate:status
+```
+
+### **2.5. Criar os usuários e dados iniciais**
+
+Depois de aplicar as migrations, execute:
+
+```
 docker exec -it siae-api pnpm seed
 ```
-*(Saída esperada: `Admin criado com sucesso!`)*
 
-### 5. Abrir o Prisma Studio (Visualizador do Banco de Dados)
-Para visualizar e manipular os dados no navegador:
-```bash
-docker exec -it siae-api npx prisma studio --hostname 0.0.0.0 --port 5555
+O seed inicial cria:
+
+- Usuário administrador (`ADMIN`);
+- Usuário administrador de alunos (`ALUNO_ADMIN`);
+- Registro de aluno associado ao usuário `ALUNO_ADMIN`;
+- Auxílios iniciais do sistema.
+
+O seed utiliza as quatro variáveis `SEED_*` configuradas no `.env`.
+
+Ele pode ser executado novamente sem duplicar os registros existentes. Entretanto, não altera as senhas dos usuários já cadastrados.
+
+### **2.6. Acessar a API**
+
+A API estará disponível em:
+
 ```
-Acesse no seu navegador: **[http://localhost:5555](http://localhost:5555)**
+http://localhost:3000
+```
 
-### Verificar conexão com banco de dados (manualmente)
-```bash
+### **2.7. Abrir o Prisma Studio**
+
+Para visualizar e manipular os dados do banco:
+
+```
+docker exec -it siae-api pnpm exec prisma studio --hostname 0.0.0.0 --port 5555
+```
+
+Acesse:
+
+```
+http://localhost:5555
+```
+
+### **2.8. Verificar a conexão com PostgreSQL**
+
+Execute:
+
+```
 docker exec -it siae-postgres psql -U siae_user -d siae_db -c "SELECT 1;"
 ```
-- Se funcionar, você verá algo como:
-```text
- ?column? 
-----------
-        1
-(1 row)
+
+Se a conexão estiver funcionando, o PostgreSQL retornará o resultado da consulta.
+
+## **3. Fluxo alternativo: execução totalmente local**
+
+Neste cenário, a API e o PostgreSQL são executados diretamente na máquina, sem containers.
+
+### **3.1. Criar o banco de dados**
+
+Certifique-se de que o serviço PostgreSQL esteja em execução.
+
+Acesse o PostgreSQL:
+
+```
+psql -U postgres
 ```
 
----
+Crie o banco:
 
-## 💻 Fluxo 2: Rodando 100% Local (PostgreSQL nativo na máquina - SEM DOCKER)
-
-### 1. Criar o Banco de Dados no PostgreSQL local
-É necessário criar a base de dados `siae_db` no PostgreSQL local. Isso pode ser feito via **pgAdmin**, **DBeaver** ou pelo terminal **psql**:
-
-**Pelo terminal**
-```bash
-psql -U postgres -password
+```
+CREATE DATABASE siae_db;
 ```
 
-**Crie o banco de dados**
-```bash
-postgres=# CREATE DATABASE siae_db;
-```
+Se desejar utilizar um usuário específico para o projeto:
 
-*(Opcional: Se quiser usar o mesmo usuário e senha do projeto em vez do usuário `postgres` padrão)*:
-```sql
-CREATE USER siae_user WITH PASSWORD 'siae_password';
+```
+CREATE USER siae_user WITH PASSWORD 'sua_senha_segura';
 GRANT ALL PRIVILEGES ON DATABASE siae_db TO siae_user;
 ALTER DATABASE siae_db OWNER TO siae_user;
 ```
 
-> [!NOTE]
-> Pode ser feito pelo pgAdmin também!
+### **3.2. Configurar o&#x20;**`.env`
 
----
+Para utilizar o PostgreSQL local, configure a URL de conexão com a porta correspondente à instalação local.
 
-### 2. Configurar a `DATABASE_URL` no `.env`
-No arquivo [`.env`](file:///e:/Arquivos/Documents/1-Programação/siae-api/.env), ajuste a variável `DATABASE_URL` com as credenciais do PostgreSQL local da máquina:
+Exemplo utilizando o usuário `postgres`:
 
-* **Se estiver usando o usuário padrão `postgres`:**
-  ```env
-  DATABASE_URL="postgresql://postgres:SUA_SENHA_AQUI@localhost:5432/siae_db?schema=public"
-  ```
-* **Se criou o usuário `siae_user`:**
-  ```env
-  DATABASE_URL="postgresql://siae_user:siae_password@localhost:5432/siae_db?schema=public"
-  ```
+```
+DATABASE_URL="postgresql://postgres:SUA_SENHA@localhost:5432/siae_db?schema=public"
+```
 
----
+Se estiver utilizando o usuário `siae_user`:
 
-### 3. Instalar dependências e sincronizar o Prisma
+```
+DATABASE_URL="postgresql://siae_user:SUA_SENHA@localhost:5432/siae_db?schema=public"
+```
+
+Configure também as demais variáveis de ambiente, incluindo as quatro variáveis `SEED_*` necessárias para o seed inicial.
+
+### **3.3. Instalar dependências**
+
 Na raiz do projeto:
 
-```bash
-# 1. Instala as dependências
+```
 pnpm install
-
-# 2. Gera os tipos do Prisma Client
-npx prisma generate
-
-# 3. Cria todas as tabelas no seu PostgreSQL local
-npx prisma db push
 ```
 
----
+### **3.4. Gerar o Prisma Client**
 
-### 4. Rodar o Seed (Criar o Administrador padrão)
-Com as tabelas criadas no banco local, execute o script de seed:
+```
+pnpm db:generate
+```
 
-```bash
+### **3.5. Aplicar as migrations**
+
+```
+pnpm db:migrate:deploy
+```
+
+### **3.6. Executar o seed**
+
+Depois que as migrations forem aplicadas:
+
+```
 pnpm seed
 ```
-> Saída esperada: `Admin criado com sucesso!`
 
----
+### **3.7. Iniciar a API**
 
-### 5. Iniciar a API e o Prisma Studio
+```
+pnpm dev
+```
 
-* **Para rodar a API:**
-  ```bash
-  pnpm dev
-  ```
-  *(API disponível em `http://localhost:3000`)*
+A API estará disponível em:
 
-* **Para abrir o visualizador de banco (Prisma Studio):**
-  ```bash
-  npx prisma studio
-  ```
-  *(Interface aberta em `http://localhost:5555`)*
+```
+http://localhost:3000
+```
 
----
+### **3.8. Abrir o Prisma Studio**
 
-## 🚀 Fluxo 3: Tudo rodando no Docker + acesso ao banco via pgAdmin (Opcional)
+```
+pnpm exec prisma studio
+```
 
-### 👾 Dados para conectar no pgAdmin (Banco no Docker)
+Acesse:
 
-Ao cadastrar um novo servidor no **pgAdmin**, preencha a aba **Connection** com:
+```
+http://localhost:5555
+```
 
-| Campo | Valor |
-|---|---|
-| **Host name/address** | `localhost` *(ou `127.0.0.1`)* |
-| **Port** | `5432` |
-| **Maintenance database** | `siae_db` |
-| **Username** | `siae_user` |
-| **Password** | `siae_password` |
+## **4. Acessar o PostgreSQL do Docker pelo pgAdmin**
 
-### ⚠️ O único ponto de atenção (Conflito no Windows)
+Também é possível utilizar o pgAdmin ou DBeaver para acessar visualmente o banco executado no Docker.
 
-Como você tem o PostgreSQL instalado também nativamente no Windows:
+Ao cadastrar um novo servidor, preencha os campos de conexão:
 
-1. **manter os dois rodando juntos sem conflito: (RECOMENDADO)**
-   * No [docker-compose.yml](file:///e:/Arquivos/Documents/1-Programação/siae-api/docker-compose.yml#L14), mude a porta externa do container:
-     ```yaml
-     ports:
-       - "5433:5432" # 5433 na máquina -> 5432 no Docker
-     ```
-   * No pgAdmin, basta colocar a porta **`5433`** na conexão.
+| Campo                | Valor                               |
+| -------------------- | ----------------------------------- |
+| Host name/address    | `localhost`                         |
+| Port                 | `5433`                              |
+| Maintenance database | `siae_db`                           |
+| Username             | `siae_user`                         |
+| Password             | Valor configurado no Docker Compose |
 
-2. **Se não quiser mudar a porta do Docker:**
-   * O pgAdmin pode acabar conectando no seu banco do Windows em vez do banco do Docker, ou haverá colisão na porta `5432`.
-   * **Solução rápida:** Pause o serviço do Windows: (`services.msc` -> parar `postgresql-x64-...`).
-    - Segure as teclas **Ctrl + Shift + Esc** para abrir o **Gerenciador de Tarefas**.
-    - Clique na aba **Serviços**.
-    - Localize o serviço `postgresql-x64-...` (ou similar).
-    - Clique com o botão direito sobre ele e selecione **Parar**.
+**Atenção:** a porta `5433` é a porta externa da máquina. Dentro da rede Docker, a porta do PostgreSQL continua sendo `5432`.
 
-> [!TIP]
-> **Dica para não iniciar o postgresql sozinho ao ligar o PC:**  
-> Dê um duplo clique no serviço do PostgreSQL, mude o campo **"Tipo de inicialização"** de *Automático* para **Manual** e clique em **Aplicar**. Assim ele só iniciará quando você mandar.
+## **5. Gerenciamento de migrations**
 
----
+O projeto utiliza Prisma Migrate para controlar as alterações no esquema do banco.
 
-## ⚠️ Possíveis Pegadinhas e Como Resolver
+Os comandos disponíveis são:
 
-1. **Conflito de Porta `5432` no Windows:**
-   - Se o desenvolvedor já tiver o PostgreSQL instalado no Windows, o serviço do Windows (`postgres.exe`) ocupa a porta `5432`.
-   - **Solução:** Parar o serviço do Windows (`services.msc` -> parar "postgresql-x64...") **OU** mudar a porta exposta no [docker-compose.yml](file:///e:/Arquivos/Documents/1-Programação/siae-api/docker-compose.yml) para `"5433:5432"` e no `.env` usar `localhost:5433`. (como mencionado acima)
+| Comando                  | Finalidade                                         |
+| ------------------------ | -------------------------------------------------- |
+| `pnpm db:generate`       | Gera o Prisma Client                               |
+| `pnpm db:migrate:dev`    | Cria e aplica migrations durante o desenvolvimento |
+| `pnpm db:migrate:deploy` | Aplica migrations existentes                       |
+| `pnpm db:migrate:status` | Verifica o estado das migrations                   |
 
-2. **Erro `@prisma/client did not initialize yet`:**
-   - Ocorre ao rodar comandos locais antes de compilar o Prisma.
-   - **Solução:** Rodar `npx prisma generate` na raiz do projeto.
+### **5.1. Criar uma nova migration**
 
-3. **Credenciais do Admin Padrão:**
-   - **Email:** `admin@siae.br`
-   - **Senha:** `admin123`
-   - **Permissão:** `ADMIN`
+Quando houver uma alteração no arquivo `prisma/schema.prisma`, crie uma migration com:
+
+```
+pnpm db:migrate:dev --name descricao_da_alteracao
+```
+
+Esse comando deve ser executado na raiz do projeto, com o banco de desenvolvimento disponível e a variável `DATABASE_URL` apontando para ele.
+
+Se estiver utilizando Docker, execute dentro do container da API:
+
+```
+docker exec -it siae-api pnpm db:migrate:dev --name descricao_da_alteracao
+```
+
+As migrations são armazenadas em `prisma/migrations` e devem ser versionadas no Git.
+
+### **5.2. Aplicar migrations existentes**
+
+Para ambientes que já possuem as migrations versionadas, utilize:
+
+```
+pnpm db:migrate:deploy
+```
+
+Esse é o comando utilizado para preparar o banco em ambientes de implantação.
+
+**Não utilize `prisma db push` como substituto do fluxo de migrations do projeto.**
+
+## 6. Banco de produção: Supabase
+
+O ambiente de produção utiliza PostgreSQL hospedado no Supabase. A URL de conexão é configurada nas variáveis de ambiente do backend no Render.
+
+### 6.1. Tipo de conexão
+
+Para executar migrations, utilize a conexão **Session Pooler** do Supabase.
+
+Não utilize a conexão Transaction Pooler neste procedimento.
+
+A URL de produção é uma credencial privada e nunca deve ser versionada no Git.
+
+### 6.2. Aplicar migrations em produção
+
+As migrations devem ser aplicadas somente depois de confirmar que o container de execução contém a versão correta do projeto e os arquivos de migration necessários.
+
+Neste projeto, o procedimento pode ser realizado por meio do container de teste `siae-api-production-test`.
+
+Primeiro, solicite a URL do Session Pooler sem exibi-la no terminal:
+
+```bash
+read -rsp "URL do Supabase (Session Pooler): " SUPABASE_DATABASE_URL
+echo
+```
+
+Verifique o estado das migrations no banco de produção:
+
+```bash
+docker exec \
+  -e DATABASE_URL="$SUPABASE_DATABASE_URL" \
+  siae-api-production-test \
+  pnpm db:migrate:status
+```
+
+Se o destino estiver correto e as migrations pendentes forem as esperadas, aplique-as:
+
+```bash
+docker exec \
+  -e DATABASE_URL="$SUPABASE_DATABASE_URL" \
+  siae-api-production-test \
+  pnpm db:migrate:deploy
+```
+
+Ao terminar, remova a variável da sessão:
+
+```bash
+unset SUPABASE_DATABASE_URL
+```
+
+**Atenção:**
+
+- Confirme o projeto Supabase antes de executar os comandos.
+- Confirme que o container contém as migrations da versão que será implantada.
+- Nunca utilize a URL local do container como destino de produção.
+- Não execute migrations de produção sem verificar previamente o destino.
+- Não utilize comandos de reset ou exclusão do banco de dados em produção.
+- Não compartilhe a URL de conexão em commits, logs ou mensagens.
+
+## **7. Problemas comuns**
+
+### **7.1. Conflito na porta 5432**
+
+Se o PostgreSQL já estiver instalado e em execução na máquina, ele poderá utilizar a porta `5432`.
+
+O Docker Compose do projeto expõe o banco na porta `5433`, evitando esse conflito.
+
+Se houver conflito na porta `5433`, verifique qual processo está utilizando essa porta antes de alterar a configuração.
+
+### **7.2. Erro de conexão com o banco**
+
+Confira:
+
+- Se o container `siae-postgres` está em execução;
+- Se o banco está saudável;
+- Se a `DATABASE_URL` corresponde ao ambiente de execução;
+- Se as credenciais estão corretas.
+
+Para verificar os containers:
+
+```
+docker compose ps
+```
+
+Para consultar os logs do PostgreSQL:
+
+```
+docker logs siae-postgres
+```
+
+### **7.3. Erro `@prisma/client did not initialize yet`**
+
+Gere o Prisma Client:
+
+```
+pnpm db:generate
+```
+
+No Docker:
+
+```
+docker exec -it siae-api pnpm db:generate
+```
+
+### **7.4. Migrations pendentes**
+
+Verifique o estado das migrations:
+
+```
+pnpm db:migrate:status
+```
+
+No Docker:
+
+```
+docker exec -it siae-api pnpm db:migrate:status
+```
+
+Se houver migrations pendentes, aplique-as com `pnpm db:migrate:deploy`, certificando-se de que a conexão aponta para o banco correto.
+
+## **8. Observações importantes**
+
+- O arquivo `.env` não deve ser versionado.
+- As migrations devem ser mantidas no Git.
+- O seed deve ser executado somente depois das migrations.
+- As senhas do seed devem ser fortes e possuir pelo menos 12 caracteres.
+- Os comandos de desenvolvimento e produção devem utilizar as respectivas URLs de conexão.
+- Antes de executar operações no banco, confirme sempre o ambiente de destino.
