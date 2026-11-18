@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import prisma from "./database";
 import { TipoAuxilio } from "@prisma/client";
+import { validatePassword } from '../utils/passwordValidator';
 
 function requiredEnv(name: string): string {
     const value = process.env[name];
@@ -23,8 +24,8 @@ export async function seedDatabase(): Promise<void> {
         throw new Error("As contas ADMIN e ALUNO_ADMIN devem utilizar e-mails diferentes.");
     }
 
-    if (adminPassword.length < 12 || alunoAdminPassword.length < 12) {
-        throw new Error("As senhas administrativas devem possuir pelo menos 12 caracteres.");
+    if (!validatePassword(adminPassword) || !validatePassword(alunoAdminPassword)) {
+        throw new Error('As senhas administrativas devem possuir entre 8 e 16 caracteres.');
     }
 
     // 1. Administrador

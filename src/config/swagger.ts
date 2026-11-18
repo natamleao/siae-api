@@ -43,7 +43,7 @@ const swaggerOptions: swaggerJSDoc.Options = {
             password: {
               type: 'string',
               format: 'password',
-              example: '123456',
+              example: 'Senha123!',
             },
           },
         },
@@ -96,7 +96,9 @@ const swaggerOptions: swaggerJSDoc.Options = {
             password: {
               type: 'string',
               format: 'password',
-              example: '123456',
+	      minLength: 8,
+              maxLength: 16,
+              example: 'Senha123!',
             },
             matricula: {
               type: 'number',
@@ -131,7 +133,9 @@ const swaggerOptions: swaggerJSDoc.Options = {
             newPassword: {
               type: 'string',
               format: 'password',
-              example: 'novaSenha123',
+              minLength: 8,
+              maxLength: 16,
+              example: 'NovaSenha123!',
             },
           },
         },
@@ -155,7 +159,9 @@ const swaggerOptions: swaggerJSDoc.Options = {
             senha: {
               type: 'string',
               format: 'password',
-              example: 'senhaForte123',
+              minLength: 8,
+              maxLength: 16,
+              example: 'Senha123!',
             },
             permissao: {
               type: 'string',
