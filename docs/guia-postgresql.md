@@ -37,7 +37,7 @@ cd siae-api
 
 ### **2.2. Configurar as variáveis de ambiente**
 
-Crie o arquivo `.env` na raiz do projeto, utilizando `.env-example` como referência.
+Crie o arquivo `.env` na raiz do projeto, utilizando `.env.example` como referência.
 
 A variável `DATABASE_URL` deve apontar para a porta exposta pelo Docker na máquina:
 

@@ -48,7 +48,7 @@ cd siae-api
 Copie o arquivo de exemplo:
 
 ```bash
-cp .env-example .env
+cp .env.example .env
 ```
 
 Edite o arquivo `.env` e configure principalmente:
