@@ -31,18 +31,29 @@ const router = Router();
  *             properties:
  *               nome:
  *                 type: string
+ *                 minLength: 1
+ *                 maxLength: 50
  *                 example: João da Silva
+ *                 description: Nome completo, com pelo menos duas palavras e apenas letras.
  *               matricula:
  *                 type: string
- *                 example: "2023001234"
+ *                 pattern: '^\d{6}$'
+ *                 minLength: 6
+ *                 maxLength: 6
+ *                 example: "012345"
  *               email:
  *                 type: string
  *                 format: email
- *                 example: joao@aluno.com
+ *                 pattern: '^[^\s@]+@alu\.ufc\.br$'
+ *                 example: joao@alu.ufc.br
  *               senha:
  *                 type: string
  *                 format: password
- *                 example: senha123
+ *                 minLength: 8
+ *                 maxLength: 16
+ *                 pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%&*_-]).{8,16}$'
+ *                 example: Senha123!
+ *                 description: Deve conter letra maiúscula, minúscula, número e caractere especial permitido.
  *     responses:
  *       201:
  *         description: Aluno cadastrado com sucesso
@@ -56,14 +67,19 @@ const router = Router();
  *                 data:
  *                   type: object
  *                   properties:
- *                     id: { type: number, example: 1 }
+ *                     id: { type: integer, example: 1 }
+ *                     authId: { type: integer, example: 10 }
  *                     nome: { type: string, example: "João da Silva" }
- *                     matricula: { type: string, example: "2023001234" }
- *                     email: { type: string, example: "joao@aluno.com" }
+ *                     matricula: { type: string, example: "012345" }
+ *                     email: { type: string, example: "joao@alu.ufc.br" }
  *                     permissao: { type: string, example: "ALUNO" }
  *                     token: { type: string, example: "eyJhbGciOiJI..." }
  *       400:
- *         description: Dados inválidos, ou email/matrícula já cadastrados
+ *         description: Dados de cadastro inválidos
+ *       409:
+ *         description: E-mail ou matrícula já cadastrados
+ *       500:
+ *         description: Erro interno ao cadastrar aluno
  */
 router.post("/register", AlunoController.register);
 

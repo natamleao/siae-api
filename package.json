@@ -4,10 +4,10 @@
     "description": "",
     "main": "app.ts",
     "scripts": {
-        "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
+        "dev": "pnpm build && node dist/app.js",
         "build": "tsc",
         "test": "echo \"Error: no test specified\" && exit 1",
-        "seed": "ts-node src/config/run-seed.ts",
+        "seed": "pnpm build && node dist/config/run-seed.js",
         "seed:deploy": "node dist/config/run-seed.js",
         "db:generate": "prisma generate",
         "db:migrate:dev": "prisma migrate dev",

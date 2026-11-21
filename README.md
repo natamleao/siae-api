@@ -69,7 +69,9 @@ Configure também as variáveis de e-mail caso precise utilizar o envio de mensa
 docker compose up -d --build
 ```
 
-Esse comando inicia a API e o PostgreSQL.
+Esse comando constrói as imagens e inicia a API e o PostgreSQL.
+
+Durante a inicialização, o container da API executa `pnpm build` para compilar o TypeScript e, em seguida, inicia a aplicação com `node dist/app.js`.
 
 #### 4️⃣ Aplicar as migrations
 
@@ -89,6 +91,8 @@ Após aplicar as migrations, execute:
 docker exec -it siae-api pnpm seed
 ```
 
+O comando `pnpm seed` compila o projeto com `pnpm build` e executa o seed compilado em `dist/config/run-seed.js`.
+
 O seed cria os seguintes registros iniciais:
 
 - Um usuário com permissão `ADMIN`.
@@ -101,8 +105,9 @@ O script pode ser executado novamente sem duplicar os registros existentes. Ele 
 
 #### 6️⃣ Acessar a aplicação
 
-- **API:** http://localhost:3000
-- **Swagger:** http://localhost:3000/docs
+- **API (endereço base):** http://localhost:3000
+- **Verificação de saúde:** http://localhost:3000/health/ready
+- **Swagger:** http://localhost:3000/docs/
 
 Para abrir o Prisma Studio:
 
@@ -185,11 +190,11 @@ Certifique-se de ter as seguintes ferramentas instaladas em sua máquina:
 
 A API conta com documentação interativa gerada pelo Swagger, com suporte à autenticação **OAuth2 (Password Flow)** e **Bearer JWT**:
 
-👉 **http://localhost:3000/docs**
+👉 **http://localhost:3000/docs/**
 
 #### Como autenticar no Swagger com 1 clique (OAuth2):
 
-1. Acesse http://localhost:3000/docs.
+1. Acesse http://localhost:3000/docs/.
 2. Clique no botão verde **Authorize 🔓** no canto superior direito.
 3. Na seção **OAuth2PasswordBearer**, informe:
    - **username:** e-mail configurado em `SEED_ADMIN_EMAIL`.

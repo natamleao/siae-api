@@ -41,7 +41,7 @@ services:
     environment:
       DATABASE_URL: postgresql://siae_user:siae_password@postgres:5432/siae_db?schema=public
       NODE_ENV: development
-      JWT_SECRET: ${JWT_SECRET:-SIAEJWTUFC}
+      JWT_SECRET: ${JWT_SECRET:?A variável JWT_SECRET deve ser definida no arquivo .env}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173,http://localhost:8080}
 
     volumes:

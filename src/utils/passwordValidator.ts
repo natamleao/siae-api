@@ -1,3 +1,5 @@
 export const validatePassword = (password: string): boolean => {
-    return password.length >= 8 && password.length <= 16;
+    const regexSenha = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%&*\-_]).{8,16}$/;
+
+    return regexSenha.test(password);
 };

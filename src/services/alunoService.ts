@@ -2,8 +2,6 @@ import { IdentificacaoPessoalData, RegisterAlunoData, DadosAcademicosData } from
 import { AlunoRepository } from "../repository/alunoRepository";
 import { AuthRepository } from "../repository/authRepository";
 import { generateToken } from "./authService";
-import { validatePassword } from '../utils/passwordValidator';
-
 import {
     validateCPF,
     validateName,
@@ -15,87 +13,152 @@ import {
     validateTurno
 } from "../utils/validators";
 import { sanitizeCpf, sanitizeRg, sanitizePhone } from "../utils/sanitize";
+import { validatePassword } from "../utils/passwordValidator";
+import { logError } from "../utils/logger.js";
 
-import { TipoResponsavel, Sexo, IdentidadeGenero, OrientacaoSexual, EtniaRaca, EstadoCivil, TipoDeficiencia } from "@prisma/client";
+import { TipoResponsavel, Sexo, IdentidadeGenero, OrientacaoSexual, EtniaRaca, EstadoCivil, TipoDeficiencia, Prisma } from "@prisma/client";
 
 import bcrypt from 'bcryptjs';
 
 
 export class AlunoService {
     public static async registerAluno(data: RegisterAlunoData) {
-        const validationData = await AlunoService.validateRegisterData(data)
-        if (validationData.success == false) {
-            return validationData;
+        if (
+            !data ||
+            typeof data.nome !== "string" ||
+            typeof data.matricula !== "string" ||
+            typeof data.email !== "string" ||
+            typeof data.senha !== "string"
+        ) {
+            return {
+                success: false,
+                code: "INVALID_DATA",
+                message: "Nome, matrícula, email e senha devem ser informados em formato válido."
+            };
         }
 
-        const dataEmail = await AuthRepository.findAuthByEmail(data.email)
-        const dataMatricula = await AlunoRepository.findAlunoByMatricula(data.matricula)
+        const dadosNormalizados: RegisterAlunoData = {
+            ...data,
+            nome: data.nome.trim().replace(/\s+/g, " "),
+            matricula: data.matricula.trim(),
+            email: data.email.trim().toLowerCase()
+        };
+
+        const validationData = await AlunoService.validateRegisterData(dadosNormalizados);
+
+        if (!validationData.success) {
+            return {
+                ...validationData,
+                code: "INVALID_DATA"
+            };
+        }
+
+        const dataEmail = await AuthRepository.findAuthByEmail(dadosNormalizados.email);
 
         if (dataEmail !== null) {
             return {
                 success: false,
-                message: 'Email já existente'
+                code: "EMAIL_EXISTS",
+                message: "Email já existente"
             };
         }
+
+        const dataMatricula = await AlunoRepository.findAlunoByMatricula(dadosNormalizados.matricula);
 
         if (dataMatricula !== null) {
             return {
                 success: false,
-                message: "Matricula já existente"
+                code: "MATRICULA_EXISTS",
+                message: "Matrícula já existente"
             };
         }
 
         try {
-            const senhaHash = await bcrypt.hash(data.senha, 10);
+            const senhaHash = await bcrypt.hash(dadosNormalizados.senha, 10);
 
             const createNewAluno = await AuthRepository.createAuthWithAluno({
-                ...data,
+                ...dadosNormalizados,
                 senha: senhaHash
-            })
+            });
 
             return {
                 success: true,
                 message: "Aluno registrado com sucesso.",
                 data: {
                     id: createNewAluno.aluno.id,
+                    authId: createNewAluno.auth.id,
                     nome: createNewAluno.aluno.nome,
                     matricula: createNewAluno.aluno.matricula,
                     email: createNewAluno.auth.email,
                     permissao: createNewAluno.auth.permissao,
                     token: generateToken(createNewAluno.auth)
                 }
-            }
-        } catch (error: any) {
-            return { success: false, message: 'Erro ao registrar o aluno: ' + error.message }
+            };
+        } catch (error) {
+            if (
+                error instanceof Prisma.PrismaClientKnownRequestError &&
+                error.code === "P2002"
+            ) {
+                const target = Array.isArray(error.meta?.target)
+                    ? error.meta.target.join(",").toLowerCase()
+                    : String(error.meta?.target ?? "").toLowerCase();
 
+                if (target.includes("email")) {
+                    return {
+                        success: false,
+                        code: "EMAIL_EXISTS",
+                        message: "Email já existente"
+                    };
+                }
+
+                if (target.includes("matricula")) {
+                    return {
+                        success: false,
+                        code: "MATRICULA_EXISTS",
+                        message: "Matrícula já existente"
+                    };
+                }
+            }
+
+            logError("Falha ao cadastrar aluno", error);
+
+            return {
+                success: false,
+                code: "INTERNAL_ERROR",
+                message: "Erro interno ao cadastrar aluno"
+            };
         }
     }
 
     public static async validateRegisterData(data: RegisterAlunoData) {
-        const regexNumbVerification: RegExp = /^\d+$/;
-        const regexEmailVerification: RegExp = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const nome = data.nome.trim();
+        const palavrasNome = nome.split(/\s+/).filter(Boolean);
+        const regexMatricula = /^\d{6}$/;
+        const regexEmailInstitucional = /^[^\s@]+@alu\.ufc\.br$/i;
 
-        if (data.nome.trim().length < 1 || data.nome.length > 50) {
-            return { success: false, message: 'Nome deve ter entre 1 e 50 caracteres' }
+        if (nome.length < 1 || nome.length > 50 || !validateName(nome) || palavrasNome.length < 2) {
+            return { success: false, message: 'Informe seu nome completo, com pelo menos nome e sobrenome' };
+        }
+
+        if (!regexMatricula.test(data.matricula)) {
+            return { success: false, message: 'Matrícula deve conter exatamente 6 dígitos' };
+        }
+
+        if (!regexEmailInstitucional.test(data.email.trim())) {
+            return { success: false, message: 'Informe um e-mail institucional @alu.ufc.br válido' };
         }
 
         if (!validatePassword(data.senha)) {
-            return { success: false, message: 'Senha deve possuir entre 8 e 16 caracteres' }
-        }
-
-        if (regexNumbVerification.test(data.matricula) == false) {
-            return { success: false, message: "Matricula aceita somente números" }
-        }
-
-        if (regexEmailVerification.test(data.email) == false) {
-            return { success: false, message: "Email inválido" }
+            return {
+                success: false,
+                message: 'Senha deve ter de 8 a 16 caracteres, com letra maiúscula, minúscula, número e caractere especial permitido'
+            };
         }
 
         return {
             success: true,
             message: "Dados válidos."
-        }
-
+        };
     }
 
 
@@ -376,7 +439,6 @@ export class AlunoService {
 
         const dadosLimpos = AlunoService.limpezaCamposOutros(cloneData);
         try {
-            console.log(alunoAuth.id)
             const updateAluno = await AlunoRepository.updateAluno(alunoAuth.id, {
                 ...dadosLimpos,
                 etapaCadastro: etapaNova
@@ -388,7 +450,7 @@ export class AlunoService {
                 data: updateAluno
             }
         } catch (error) {
-            console.log("Erro ao atualizar o aluno")
+            logError("Falha ao atualizar aluno", error);
             return {
                 success: false,
                 message: "Erro ao atualizar aluno."

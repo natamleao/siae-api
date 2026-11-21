@@ -1,9 +1,9 @@
-import { Console } from 'node:console';
 import nodemailer from 'nodemailer';
 
 const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
     port: Number(process.env.EMAIL_PORT),
+    secure: Number(process.env.EMAIL_PORT) === 465,
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
@@ -12,11 +12,14 @@ const transporter = nodemailer.createTransport({
 
 export class EmailService {
     public static async sendResetPasswordEmail(to: string, token: string) {
-        console.log('Enviando email para:', to);
-        const resetLink = `http://localhost:5173/recuperar-senha?token=${token}`;
+        const frontendUrl = process.env.FRONTEND_URL;
+        if (!frontendUrl) {
+            throw new Error("FRONTEND_URL não está configurada");
+        }
+        const resetLink = `${frontendUrl.replace(/\/$/, "")}/recuperar-senha?token=${encodeURIComponent(token)}`;
 
         await transporter.sendMail({
-            from: '"Suporte SIAE',
+            from: `"Suporte SIAE" <${process.env.EMAIL_USER}>`,
             to,
             subject: "Recuperação de Senha",
             html: `<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f7; color: #333333;">
@@ -41,7 +44,7 @@ export class EmailService {
                                     <table border="0" cellpadding="0" cellspacing="0" width="100%">
                                         <tr>
                                             <td align="center">
-                                                <a href=${resetLink} target="_blank" style="display: inline-block; padding: 16px 36px; font-size: 16px; font-weight: bold; color: #ffffff; background-color: #021c4c; text-decoration: none; border-radius: 6px; box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2);">
+                                                <a href="${resetLink}" target="_blank" style="display: inline-block; padding: 16px 36px; font-size: 16px; font-weight: bold; color: #ffffff; background-color: #021c4c; text-decoration: none; border-radius: 6px; box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2);">
                                                     Redefinir Senha
                                                 </a>
                                             </td>
@@ -49,7 +52,7 @@ export class EmailService {
                                     </table>
 
                                     <p style="margin: 30px 0 0 0; font-size: 14px; line-height: 1.6; color: #9ca3af; text-align: center;">
-                                        Este link é válido por <strong>1 hora</strong>. <br>
+                                        Este link é válido por <strong>5 minutos</strong>. <br>
                                         Por motivos de segurança, nunca compartilhe este link com ninguém.
                                     </p>
                                 </td>
@@ -69,6 +72,5 @@ export class EmailService {
             </table>
         </body>`
         });
-        console.log('Enviou')
     }
 }

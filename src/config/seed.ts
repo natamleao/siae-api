@@ -19,13 +19,14 @@ export async function seedDatabase(): Promise<void> {
 
     const alunoAdminEmail = requiredEnv("SEED_ALUNO_ADMIN_EMAIL").trim();
     const alunoAdminPassword = requiredEnv("SEED_ALUNO_ADMIN_PASSWORD");
+    const alunoAdminMatricula = requiredEnv("SEED_ALUNO_ADMIN_MATRICULA").trim();
 
     if (adminEmail.toLowerCase() === alunoAdminEmail.toLowerCase()) {
         throw new Error("As contas ADMIN e ALUNO_ADMIN devem utilizar e-mails diferentes.");
     }
 
     if (!validatePassword(adminPassword) || !validatePassword(alunoAdminPassword)) {
-        throw new Error('As senhas administrativas devem possuir entre 8 e 16 caracteres.');
+        throw new Error('As senhas administrativas devem ter de 8 a 16 caracteres, incluindo letra maiúscula, minúscula, número e caractere especial permitido (! @ # $ % & * - _).');
     }
 
     // 1. Administrador
@@ -44,11 +45,11 @@ export async function seedDatabase(): Promise<void> {
             }
         });
 
-        console.log(`🌱 Administrador criado: ${adminEmail}`);
+        console.log("🌱 Administrador criado com sucesso.");
     } else if (existingAdmin.permissao !== "ADMIN") {
         throw new Error(`A conta ${adminEmail} já existe com outra permissão.`);
     } else {
-        console.log(`ℹ️ Administrador já existe: ${adminEmail}`);
+        console.log("ℹ️ Administrador já existe.");
     }
 
     // 2. Aluno Administrador
@@ -64,7 +65,7 @@ export async function seedDatabase(): Promise<void> {
         }
 
         alunoAdminAuthId = existingAlunoAdmin.id;
-        console.log(`ℹ️ Aluno administrador já existe: ${alunoAdminEmail}`);
+        console.log("ℹ️ Aluno administrador já existe.");
     } else {
         const senhaHash = await bcrypt.hash(alunoAdminPassword, 12);
 
@@ -77,7 +78,7 @@ export async function seedDatabase(): Promise<void> {
         });
 
         alunoAdminAuthId = auth.id;
-        console.log(`🌱 Aluno administrador criado: ${alunoAdminEmail}`);
+        console.log("🌱 Aluno administrador criado com sucesso.");
     }
 
     const existingAluno = await prisma.aluno.findUnique({
@@ -89,7 +90,7 @@ export async function seedDatabase(): Promise<void> {
             data: {
                 authId: alunoAdminAuthId,
                 nome: "Aluno Administrador",
-                matricula: "0000000000"
+                matricula: alunoAdminMatricula
             }
         });
 

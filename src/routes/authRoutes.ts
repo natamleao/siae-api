@@ -76,16 +76,28 @@ router.post("/login", AuthController.login);
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/RegisterInput'
+ *             $ref: '#/components/schemas/AuthRegisterInput'
  *     responses:
  *       201:
  *         description: Usuário cadastrado com sucesso
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/LoginResponse'
+ *               $ref: '#/components/schemas/AuthRegisterResponse'
  *       400:
  *         description: Dados inválidos
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiResponse'
+ *       409:
+ *         description: E-mail ou matrícula já cadastrados
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiResponse'
+ *       500:
+ *         description: Erro interno ao cadastrar usuário
  *         content:
  *           application/json:
  *             schema:

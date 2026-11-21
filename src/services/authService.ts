@@ -6,16 +6,25 @@ import { Auth } from '@prisma/client';
 import crypto from 'crypto';
 import { EmailService } from './emailService';
 import { validatePassword } from '../utils/passwordValidator';
+import { Permissao } from "../enums/permissions";
+import { logError } from "../utils/logger.js";
 
 const RESET_TOKEN_EXPIRY_MINUTES = 5;
-const JWT_SECRET = process.env.JWT_SECRET || 'KEY';
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+    throw new Error('A variável JWT_SECRET não foi definida.');
+}
 const JWT_EXPIRES_IN = '7d';
 
 export const generateToken = (user: Auth): string => {  //Antes estava sem o export nao tinha como eu usar ela, perguntar ao ruan se interfere na arq
     return jwt.sign(
         { id: user.id, email: user.email, permissao: user.permissao },
         JWT_SECRET,
-        { expiresIn: JWT_EXPIRES_IN }
+        {
+            expiresIn: JWT_EXPIRES_IN,
+            algorithm: "HS256"
+        }
     );
 };
 
@@ -27,8 +36,8 @@ const formatUser = (user: Auth) => ({
 
 export class AuthService {
     public static async forgotPassword(data: ForgotPasswordData): Promise<AuthResult> {
-        const { email } = data;
-        const user = await AuthRepository.findAuthByEmail(email);
+        const { identifier } = data;
+        const user = await AuthRepository.findAuthByIdentifier(identifier);
 
         if (!user) {
             return { success: true, message: 'Se o email existir, você receberá um link de recuperação' };
@@ -43,7 +52,7 @@ export class AuthService {
         try {
             await EmailService.sendResetPasswordEmail(user.email, resetToken);
         } catch (error) {
-            console.error('Erro ao enviar email:', error);
+            logError("Falha ao enviar e-mail de recuperação de senha", error);
         }
 
         return { success: true, message: 'Se o email existir, você receberá um link de recuperação' };
@@ -53,7 +62,7 @@ export class AuthService {
         const { token, newPassword } = data;
 
         if (!validatePassword(newPassword)) {
-            return { success: false, message: 'Senha deve possuir entre 8 e 16 caracteres' };
+            return { success: false, message: 'Senha deve ter de 8 a 16 caracteres, incluindo letra maiúscula, minúscula, número e caractere especial permitido (! @ # $ % & * - _)' };
         }
 
         const user = await AuthRepository.findAuthByResetToken(token);
@@ -66,8 +75,9 @@ export class AuthService {
             await AuthRepository.updatePasswordAndClearToken(user.id, hashedPassword);
 
             return { success: true, message: 'Senha alterada com sucesso' };
-        } catch (error: any) {
-            return { success: false, message: 'Erro ao redefinir senha: ' + error.message };
+        } catch (error: unknown) {
+            logError("Falha ao redefinir senha", error);
+            return { success: false, message: 'Erro interno ao redefinir senha.' };
         }
     }
 
@@ -92,12 +102,12 @@ export class AuthService {
     }
 
     public static async register(data: RegisterData): Promise<AuthResult> {
-        const { email, password, permissao } = data;
+        const { email, password } = data;
 
         if (!validatePassword(password)) {
             return {
                 success: false,
-                message: 'A senha deve possuir entre 8 e 16 caracteres'
+                message: 'A senha deve ter de 8 a 16 caracteres, incluindo letra maiúscula, minúscula, número e caractere especial permitido (! @ # $ % & * - _)'
             };
         }
 
@@ -110,7 +120,7 @@ export class AuthService {
         const createdUser = await AuthRepository.createAuth({
             email,
             senha: hashedPassword,
-            permissao: permissao as any,
+            permissao: Permissao.ALUNO,
         });
 
         return {

@@ -1,6 +1,7 @@
 import "dotenv/config";
 import prisma from "./database";
 import { seedDatabase } from "./seed";
+import { logError } from "../utils/logger.js";
 
 async function main(): Promise<void> {
     try {
@@ -8,7 +9,7 @@ async function main(): Promise<void> {
         await seedDatabase();
         console.log("✅ Seed concluído com sucesso!");
     } catch (error) {
-        console.error("❌ Erro ao executar seed:", error);
+        logError("Falha ao executar seed do banco de dados", error);
         process.exitCode = 1;
     } finally {
         await prisma.$disconnect();
