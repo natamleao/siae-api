@@ -1,0 +1,44 @@
+Com a migration inicial já criada e o banco em sincronia, o fluxo de trabalho que você deve adotar a partir de agora é relativamente direto. A regra de ouro é: **use `migrate dev` apenas no seu ambiente local de desenvolvimento e `migrate deploy` em qualquer ambiente compartilhado ou de produção**.
+
+### 🛠️ Seu Fluxo de Trabalho Diário (Desenvolvimento)
+
+Sempre que você precisar alterar a estrutura do banco (adicionar um campo, um novo model, etc.), o ciclo é:
+
+1.  **Altere o schema**: Edite o arquivo `schema.prisma` com as mudanças desejadas.
+2.  **Gere e aplique a migration**: No seu terminal, execute:
+    ```bash
+    npx prisma migrate dev --name um_nome_descritivo
+    ```
+    Este comando vai detectar a mudança, gerar um novo arquivo SQL em `prisma/migrations/`, aplicá-lo ao seu banco local e regenerar o Prisma Client automaticamente .
+3.  **Commit tudo**: Adicione ao Git **tanto** o `schema.prisma` quanto a nova pasta criada dentro de `prisma/migrations/`. É fundamental versionar as migrations, pois elas são o histórico que permite recriar o banco do zero em qualquer lugar .
+
+### 🔄 O que Fazer ao Trocar de Branch
+
+Este era o problema original. Agora, com o histórico de migrations, o fluxo é mais seguro:
+
+1.  Ao mudar para outra branch, rode `npx prisma migrate dev`.
+2.  O Prisma vai verificar se existem migrations naquela branch que ainda não foram aplicadas ao seu banco local e as aplicará automaticamente .
+3.  Se a branch nova **não** tiver uma migration que a anterior tinha, o Prisma não vai tentar "desfazer" nada no banco; ele apenas garantirá que o histórico da branch atual esteja aplicado. Isso evita o erro de "data loss" que você viu.
+
+**Atenção**: Nunca edite ou delete um arquivo de migration que já foi aplicado. Isso quebra o histórico e força um reset do banco .
+
+### 🐳 Docker e Produção (Ambientes Compartilhados)
+
+No seu `docker-compose.yml` ou em um pipeline de CI/CD, **nunca** use `migrate dev`. Use:
+
+```bash
+npx prisma migrate deploy
+```
+
+Este comando apenas aplica as migrations pendentes que já existem na pasta `prisma/migrations/`. Ele não detecta drift, não tenta criar migrations novas e não reseta o banco, sendo seguro para ser executado automaticamente no startup dos containers .
+
+### 📌 Resumo Prático
+
+| Situação | Comando |
+| :--- | :--- |
+| **Alterou o schema (dev)** | `npx prisma migrate dev --name nome` |
+| **Trocou de branch (dev)** | `npx prisma migrate dev` |
+| **Startup do Docker / CI/CD** | `npx prisma migrate deploy` |
+| **Banco local bagunçou (dev)** | `npx prisma migrate reset` (apaga dados) |
+
+O ponto mais importante: **abandone o `db push`**. Ele era a causa dos seus conflitos de enum. Com as migrations, você tem um controle muito mais preciso e seguro sobre a evolução do banco.

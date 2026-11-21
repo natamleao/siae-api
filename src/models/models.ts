@@ -7,7 +7,7 @@ export interface RegisterData {
     email: string;
     password: string;
     matricula?: string;
-    permissao?: "ALUNO" | "TECNICO" | "ASSISTENTE";
+    permissao?: "ALUNO";
 }
 
 export interface AuthResult {
@@ -22,7 +22,7 @@ export interface AuthResult {
 }
 
 export interface ForgotPasswordData {
-    email: string;
+    identifier: string;
 }
 
 export interface ResetPasswordData {

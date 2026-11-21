@@ -7,15 +7,15 @@ services:
       POSTGRES_USER: siae_user
       POSTGRES_PASSWORD: siae_password
       POSTGRES_DB: siae_db
-    
+
     ports:
-      - "5432:5432"
-    
+      - "5433:5432"
+
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    
+
     restart: unless-stopped
-    
+
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U siae_user -d siae_db"]
       interval: 10s
@@ -23,38 +23,38 @@ services:
       retries: 5
 
   api:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
 
     container_name: siae-api
 
     ports:
       - "3000:3000"
-      - "5555:5555" # Porta para o Prisma Studio
+      - "5555:5555"
 
     depends_on:
       postgres:
         condition: service_healthy
 
     environment:
-      - DATABASE_URL=postgresql://siae_user:siae_password@postgres:5432/siae_db?schema=public
-      - NODE_ENV=development
-      - JWT_SECRET=${JWT_SECRET:-SIAEJWTUFC}
-      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:5173}
+      DATABASE_URL: postgresql://siae_user:siae_password@postgres:5432/siae_db?schema=public
+      NODE_ENV: development
+      JWT_SECRET: ${JWT_SECRET:?A variável JWT_SECRET deve ser definida no arquivo .env}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173,http://localhost:8080}
 
     volumes:
       - ./src:/app/src
       - ./prisma:/app/prisma
-      - ./package.json:/app/package.json
-      - node_modules:/app/node_modules
 
     env_file:
       - .env
 
-    command: sh -c "pnpm install && npx prisma generate && npx prisma db push && pnpm dev"
+    command: sh -c "pnpm exec prisma generate && pnpm dev"
+
     restart: unless-stopped
 
 volumes:
   postgres_data:
-    driver: local
-  node_modules:
     driver: local

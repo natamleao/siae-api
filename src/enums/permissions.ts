@@ -1,6 +1,7 @@
 export enum Permissao {
-  ADMIN = "ADMIN",
-  ALUNO = "ALUNO",
-  TECNICO = "TECNICO",
-  ASSISTENTE = "ASSISTENTE"
+    ADMIN = "ADMIN",
+    ALUNO = "ALUNO",
+    TECNICO = "TECNICO",
+    ASSISTENTE = "ASSISTENTE",
+    ALUNO_ADMIN = "ALUNO_ADMIN"
 }

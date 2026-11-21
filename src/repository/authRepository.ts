@@ -5,10 +5,38 @@ import { RegisterAlunoData } from "../models/alunoModel";
 import { RegisterFuncionarioData } from "../models/FuncionarioModel";
 
 export class AuthRepository {
+    public static async createAuth(data: { email: string; senha: string; permissao: Permissao }): Promise<Auth> {
+        return prisma.auth.create({
+            data: {
+                email: data.email,
+                senha: data.senha,
+                permissao: data.permissao,
+            }
+        });
+    }
+
     public static async findAuthByEmail(
         email: string,
     ): Promise<Auth | null> {
         return prisma.auth.findUnique({ where: { email } });
+    }
+
+    public static async findAuthByIdentifier(
+        identifier: string,
+    ): Promise<Auth | null> {
+        const siape = /^\d+$/.test(identifier) ? Number(identifier) : null;
+
+        return prisma.auth.findFirst({
+            where: {
+                OR: [
+                    { email: identifier },
+                    { aluno: { is: { matricula: identifier } } },
+                    ...(siape !== null && Number.isSafeInteger(siape)
+                        ? [{ funcionario: { is: { siape } } }]
+                        : []),
+                ],
+            },
+        });
     }
 
     public static async findAuthById(id: number): Promise<Auth | null> {

@@ -1,0 +1,688 @@
+import { Router } from "express";
+import { authenticate, requireAluno, requireFuncionario } from "../middleware/authMiddleware";
+import { SolicitacaoController } from "../controllers/solicitacaoController";
+
+const router = Router();
+
+// =====================================================================================
+// POST
+// =====================================================================================
+
+/**
+ * @openapi
+ * /solicitacao:
+ *   post:
+ *     summary: Iniciar uma nova solicitação de auxílio (cria rascunho)
+ *     tags: [Solicitação]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - auxilioId
+ *             properties:
+ *               auxilioId:
+ *                 type: integer
+ *                 example: 1
+ *     responses:
+ *       200:
+ *         description: Rascunho anterior recuperado
+ *       201:
+ *         description: Solicitação criada em estado de rascunho
+ */
+router.post("/", authenticate, requireAluno, SolicitacaoController.iniciarSolicitacao);
+
+/**
+ * @openapi
+ * /solicitacao/{id}/identificacao-pessoal:
+ *   post:
+ *     summary: Salvar ou atualizar identificação pessoal do aluno no fluxo da solicitação (Passo 1/8)
+ *     tags: [Solicitação]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: ID da solicitação
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nome: { type: string, description: "Apenas letras e espaços", example: "João da Silva" }
+ *               cpf: { type: string, description: "Aceita máscara; validado pelos dígitos verificadores", example: "529.982.247-25" }
+ *               rg: { type: string, description: "Letras e números; aceita ponto e hífen", example: "12.345.678-9" }
+ *               dataNasc: { type: string, description: "Formato DD/MM/AAAA; entre 14 e 100 anos, sem datas futuras", example: "15/03/2005" }
+ *               telefone: { type: string, description: "DDD + número; aceita máscara", example: "(88) 91234-5678" }
+ *               emailContato: { type: string, description: "E-mail institucional com domínio @*.ufc.br", example: "aluno@alu.ufc.br" }
+ *               tipoResponsavel:
+ *                 type: string
+ *                 enum: [PAI, MAE, PROPRIO, OUTRO]
+ *               tipoResponsavelOutro: { type: string, description: "Obrigatório quando tipoResponsavel for OUTRO", example: "Tio" }
+ *               nomeResponsavel: { type: string, description: "Apenas letras e espaços", example: "Maria da Silva" }
+ *               sexo:
+ *                 type: string
+ *                 enum: [MASCULINO, FEMININO, NAO_INFORMAR]
+ *               identidadeGenero:
+ *                 type: string
+ *                 enum: [MULHER_CISGENERO, HOMEM_CISGENERO, MULHER_TRANSGENERA, HOMEM_TRANSGENERO, NAO_BINARIO, OUTRO, NAO_INFORMAR]
+ *               identidadeGeneroOutro: { type: string, description: "Obrigatório quando identidadeGenero for OUTRO" }
+ *               orientacaoSexual:
+ *                 type: string
+ *                 enum: [HETEROSEXUAL, HOMOSSEXUAL, BISEXUAL, PANSEXUAL, ASSEXUAL, OUTRO, NAO_INFORMAR]
+ *               orientacaoSexualOutro: { type: string, description: "Obrigatório quando orientacaoSexual for OUTRO" }
+ *               etniaRaca:
+ *                 type: string
+ *                 enum: [BRANCO, PRETO, PRETO_QUILOMBOLA, PRETO_NAO_QUILOMBOLA, PARDO, AMARELO, INDIGENA, NAO_INFORMAR, NAO_DECLARAR]
+ *               estadoCivil:
+ *                 type: string
+ *                 enum: [SOLTEIRO, CASADO, SEPARADO, DIVORCIADO, VIUVO, UNIAO_ESTAVEL]
+ *               tipoDeficiencia:
+ *                 type: string
+ *                 enum: [NAO_POSSUI, ALTAS_HABILIDADES_SUPERDOTACAO, BAIXA_VISAO, CEGUEIRA, AUDITIVA, FISICA, INTELECTUAL, MENTAL, MULTIPLA, SENSORIAL, SINDROME_ASPERGER, TEA, TRANSTORNO_GLOBAL_DESENVOLVIMENTO, OUTRA]
+ *               tipoDeficienciaOutro: { type: string, description: "Obrigatório quando tipoDeficiencia for OUTRA (atenção: OUTRA, não OUTRO)" }
+ *     responses:
+ *       200:
+ *         description: Identificação pessoal salva com sucesso
+ *       400:
+ *         description: Dados inválidos
+ *       403:
+ *         description: Não autorizado a alterar esta solicitação
+ *       404:
+ *         description: Solicitação ou aluno não encontrado
+ */
+router.post("/:id/identificacao-pessoal", authenticate, requireAluno, SolicitacaoController.salvarIdentificacaoPessoal);
+
+/**
+ * @openapi
+ * /solicitacao/{id}/endereco:
+ *   post:
+ *     summary: Salvar ou atualizar endereço do aluno no fluxo da solicitação (Passo 2/8)
+ *     tags: [Solicitação]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: ID da solicitação
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - tipoMoradia
+ *               - condicaoMoradia
+ *               - logradouro
+ *               - numero
+ *               - bairro
+ *               - municipio
+ *               - estado
+ *               - origemFamilia
+ *             properties:
+ *               tipoMoradia: { type: string, example: "PROPRIA" }
+ *               tipoMoradiaOutro: { type: string, nullable: true, example: null }
+ *               condicaoMoradia: { type: string, example: "MORA_COM_FAMILIA" }
+ *               condicaoMoradiaOutro: { type: string, nullable: true, example: null }
+ *               logradouro: { type: string, example: "Rua das Flores" }
+ *               numero: { type: string, example: "123" }
+ *               complemento: { type: string, nullable: true, example: "Apt 101" }
+ *               bairro: { type: string, example: "Centro" }
+ *               municipio: { type: string, example: "Natal" }
+ *               estado: { type: string, example: "RN" }
+ *               origemFamilia: { type: string, example: "Limoeiro do Norte" }
+ *     responses:
+ *       200:
+ *         description: Endereço salvo com sucesso
+ *       400:
+ *         description: Dados inválidos
+ *       403:
+ *         description: Não autorizado a alterar esta solicitação
+ *       404:
+ *         description: Solicitação ou aluno não encontrado
+ */
+router.post("/:id/endereco", authenticate, requireAluno, SolicitacaoController.salvarEndereco);
+
+/**
+ * @openapi
+ * /solicitacao/{id}/dados-academicos:
+ *   post:
+ *     summary: Salvar ou atualizar dados acadêmicos do aluno no fluxo da solicitação (Passo 3/8)
+ *     tags: [Solicitação]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: ID da solicitação
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               curso: { type: string, example: "Engenharia de Software" }
+ *               turno: { type: string, enum: [MATUTINO, VESPERTINO, NOTURNO, INTEGRAL], example: "INTEGRAL" }
+ *               tipoIngresso: { type: string, example: "Ampla Concorrência" }
+ *               anoIngresso: { type: integer, example: 2024 }
+ *               semestreAtual: { type: integer, example: 2 }
+ *               recebeuAuxilioGraduacao: { type: boolean, example: true }
+ *               auxilioGraduacaoDescricao: { type: string, example: "Auxílio Moradia 2024" }
+ *     responses:
+ *       200:
+ *         description: Dados acadêmicos salvos com sucesso
+ *       400:
+ *         description: Dados inválidos
+ *       403:
+ *         description: Não autorizado a alterar esta solicitação
+ *       404:
+ *         description: Solicitação ou aluno não encontrado
+ */
+router.post("/:id/dados-academicos", authenticate, requireAluno, SolicitacaoController.salvarDadosAcademicos);
+
+/**
+ * @openapi
+ * /solicitacao/{id}/situacoes-vida:
+ *   post:
+ *     summary: Salvar ou atualizar situações que podem impactar a vida do aluno (Passo 6/8)
+ *     tags: [Solicitação]
+ *     description: >
+ *       Salva as respostas da Seção 6. Todas as perguntas são opcionais.
+ *       Campos com texto descritivo (Outro/Outra) são limpos caso a respectiva opção não esteja marcada.
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: ID da solicitação
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               situacoesSaude:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   enum: [DOENCA_CRONICA, DOENCA_GRAVE, DEFICIENCIA, USO_CONTINUO_MEDICAMENTO, OUTRA, NAO]
+ *                 example: [DOENCA_CRONICA, USO_CONTINUO_MEDICAMENTO]
+ *               situacaoSaudeOutra:
+ *                 type: string
+ *                 nullable: true
+ *                 example: null
+ *               situacoesViolencia:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   enum: [VIOLENCIA_DOMESTICA, VIOLENCIA_PSICOLOGICA, VIOLENCIA_COMUNIDADE_URBANA, OUTRA, NAO]
+ *                 example: [NAO]
+ *               situacaoViolenciaOutra:
+ *                 type: string
+ *                 nullable: true
+ *                 example: null
+ *               acessoTransporte:
+ *                 type: string
+ *                 enum: [NAO_TENHO_ACESSO, TRANSPORTE_PAGO_COM_DIFICULDADE, TRANSPORTE_PAGO_SEM_DIFICULDADE, TRANSPORTE_GRATUITO_COM_DIFICULDADE, TRANSPORTE_GRATUITO_SEM_DIFICULDADE]
+ *                 example: TRANSPORTE_PAGO_SEM_DIFICULDADE
+ *               identificacaoSituacao:
+ *                 type: string
+ *                 enum: [GESTANTE, TEM_FILHOS, NAO]
+ *                 example: NAO
+ *               situacaoFamiliarInstavel:
+ *                 type: string
+ *                 enum: [SIM, NAO]
+ *                 example: NAO
+ *               programaSocial:
+ *                 type: string
+ *                 enum: [BOLSA_FAMILIA, BPC_LOAS, SEGURO_SAFRA, OUTRO, NAO]
+ *                 example: BOLSA_FAMILIA
+ *               programaSocialOutro:
+ *                 type: string
+ *                 nullable: true
+ *                 example: null
+ *     responses:
+ *       200:
+ *         description: Situações de vida salvas com sucesso
+ *       400:
+ *         description: Dados inválidos
+ *       403:
+ *         description: Não autorizado a alterar esta solicitação
+ *       404:
+ *         description: Solicitação ou aluno não encontrado
+ */
+router.post("/:id/situacoes-vida", authenticate, requireAluno, SolicitacaoController.salvarSituacoesVida);
+
+/**
+ * @openapi
+ * /solicitacao/{id}/relato:
+ *   post:
+ *     summary: Salvar ou atualizar o relato pessoal da solicitação (Passo 7/8)
+ *     tags: [Solicitação]
+ *     description: >
+ *       Salva o relato pessoal / texto explicativo da solicitação de auxílio.
+ *       O campo é obrigatório e aceita texto livre de até 2000 caracteres.
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: ID da solicitação
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - relato
+ *             properties:
+ *               relato:
+ *                 type: string
+ *                 maxLength: 2000
+ *                 description: Texto explicativo com os detalhes da situação e motivos da solicitação
+ *                 example: "Sou estudante do curso de Engenharia de Software e resido longe da universidade..."
+ *     responses:
+ *       200:
+ *         description: Relato pessoal salvo com sucesso
+ *       400:
+ *         description: Texto não informado ou excedeu 2000 caracteres
+ *       403:
+ *         description: Não autorizado a alterar esta solicitação
+ *       404:
+ *         description: Solicitação não encontrada
+ */
+router.post("/:id/relato", authenticate, requireAluno, SolicitacaoController.salvarRelato);
+
+// =====================================================================================
+// GET
+// =====================================================================================
+
+/**
+ * @openapi
+ * /solicitacao:
+ *   get:
+ *     summary: Listar solicitações de auxílio paginadas com filtros (somente funcionários e admin)
+ *     tags: [Solicitação]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *         description: Número da página
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 10 }
+ *         description: Quantidade de registros por página
+ *       - in: query
+ *         name: status
+ *         schema: { type: string, enum: [RASCUNHO, PENDENTE, EM_ANALISE, DEFERIDO, INDEFERIDO] }
+ *         description: Filtrar por status da solicitação
+ *       - in: query
+ *         name: auxilioId
+ *         schema: { type: integer }
+ *         description: Filtrar por ID do auxílio
+ *       - in: query
+ *         name: alunoId
+ *         schema: { type: integer }
+ *         description: Filtrar por ID do aluno
+ *     responses:
+ *       200:
+ *         description: Lista de solicitações retornada com sucesso
+ *       400:
+ *         description: Parâmetros de paginação inválidos
+ *       401:
+ *         description: Não autenticado
+ *       403:
+ *         description: Acesso negado (Requer permissão de funcionário ou admin)
+ */
+router.get("/", authenticate, requireFuncionario, SolicitacaoController.listar);
+
+/**
+ * @openapi
+ * /solicitacao/{id}:
+ *   get:
+ *     summary: Obter dados detalhados de uma solicitação por ID (somente funcionários e admin)
+ *     tags: [Solicitação]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: ID da solicitação
+ *     responses:
+ *       200:
+ *         description: Solicitação retornada com sucesso
+ *       400:
+ *         description: ID de solicitação inválido
+ *       401:
+ *         description: Não autenticado
+ *       403:
+ *         description: Acesso negado (Requer permissão de funcionário ou admin)
+ *       404:
+ *         description: Solicitação não encontrada
+ */
+router.get("/:id", authenticate, requireFuncionario, SolicitacaoController.obterPorId);
+
+/**
+ * @openapi
+ * /solicitacao/{id}/identificacao-pessoal:
+ *   get:
+ *     summary: Obter dados de identificação pessoal do aluno no fluxo da solicitação (Passo 1/8)
+ *     tags: [Solicitação]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: ID da solicitação
+ *     responses:
+ *       200:
+ *         description: Identificação pessoal obtida com sucesso
+ *       400:
+ *         description: ID de solicitação inválido
+ *       401:
+ *         description: Não autenticado
+ *       403:
+ *         description: Não autorizado a visualizar esta solicitação
+ *       404:
+ *         description: Solicitação ou aluno não encontrado
+ */
+router.get("/:id/identificacao-pessoal", authenticate, requireAluno, SolicitacaoController.obterIdentificacaoPessoal);
+
+/**
+ * @openapi
+ * /solicitacao/{id}/endereco:
+ *   get:
+ *     summary: Obter endereço do aluno no fluxo da solicitação (Passo 2/8)
+ *     tags: [Solicitação]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: ID da solicitação
+ *     responses:
+ *       200:
+ *         description: Endereço retornado com sucesso
+ *       400:
+ *         description: ID de solicitação inválido
+ *       401:
+ *         description: Não autenticado
+ *       403:
+ *         description: Não autorizado a visualizar esta solicitação
+ *       404:
+ *         description: Solicitação ou aluno não encontrado
+ */
+router.get("/:id/endereco", authenticate, requireAluno, SolicitacaoController.obterEndereco);
+
+/**
+ * @openapi
+ * /solicitacao/{id}/dados-academicos:
+ *   get:
+ *     summary: Obter dados acadêmicos do aluno no fluxo da solicitação (Passo 3/8)
+ *     tags: [Solicitação]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: ID da solicitação
+ *     responses:
+ *       200:
+ *         description: Dados acadêmicos retornados com sucesso
+ *       400:
+ *         description: ID de solicitação inválido
+ *       401:
+ *         description: Não autenticado
+ *       403:
+ *         description: Não autorizado a visualizar esta solicitação
+ *       404:
+ *         description: Solicitação ou aluno não encontrado
+ */
+router.get("/:id/dados-academicos", authenticate, requireAluno, SolicitacaoController.obterDadosAcademicos);
+
+/**
+ * @openapi
+ * /solicitacao/{id}/situacoes-vida:
+ *   get:
+ *     summary: Obter situações que podem impactar a vida salvas pelo aluno (Passo 6/8)
+ *     tags: [Solicitação]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: ID da solicitação
+ *     responses:
+ *       200:
+ *         description: Dados retornados com sucesso
+ *       403:
+ *         description: Não autorizado a visualizar esta solicitação
+ *       404:
+ *         description: Solicitação ou aluno não encontrado
+ */
+router.get("/:id/situacoes-vida", authenticate, requireAluno, SolicitacaoController.obterSituacoesVida);
+
+/**
+ * @openapi
+ * /solicitacao/{id}/relato:
+ *   get:
+ *     summary: Obter o relato pessoal da solicitação (Passo 7/8)
+ *     tags: [Solicitação]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: ID da solicitação
+ *     responses:
+ *       200:
+ *         description: Relato pessoal recuperado com sucesso
+ *       403:
+ *         description: Não autorizado a visualizar esta solicitação
+ *       404:
+ *         description: Solicitação não encontrada
+ */
+router.get("/:id/relato", authenticate, requireAluno, SolicitacaoController.obterRelato);
+
+// =====================================================================================
+// PATCH / PUT
+// =====================================================================================
+
+/**
+ * @openapi
+ * /solicitacao/{id}/identificacao-pessoal:
+ *   patch:
+ *     summary: Atualizar identificação pessoal do aluno no fluxo da solicitação (Passo 1/8)
+ *     tags: [Solicitação]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: ID da solicitação
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/paths/~1solicitacao~1{id}~1identificacao-pessoal/post/requestBody/content/application~1json/schema'
+ *     responses:
+ *       200:
+ *         description: Identificação pessoal atualizada com sucesso
+ *       400:
+ *         description: Dados inválidos
+ *       403:
+ *         description: Não autorizado a alterar esta solicitação
+ *       404:
+ *         description: Solicitação ou aluno não encontrado
+ */
+router.patch("/:id/identificacao-pessoal", authenticate, requireAluno, SolicitacaoController.salvarIdentificacaoPessoal);
+
+/**
+ * @openapi
+ * /solicitacao/{id}/endereco:
+ *   patch:
+ *     summary: Atualizar endereço do aluno no fluxo da solicitação (Passo 2/8)
+ *     tags: [Solicitação]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: ID da solicitação
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/paths/~1solicitacao~1{id}~1endereco/post/requestBody/content/application~1json/schema'
+ *     responses:
+ *       200:
+ *         description: Endereço atualizado com sucesso
+ *       400:
+ *         description: Dados inválidos
+ *       403:
+ *         description: Não autorizado a alterar esta solicitação
+ *       404:
+ *         description: Solicitação ou aluno não encontrado
+ */
+router.patch("/:id/endereco", authenticate, requireAluno, SolicitacaoController.salvarEndereco);
+
+/**
+ * @openapi
+ * /solicitacao/{id}/dados-academicos:
+ *   patch:
+ *     summary: Atualizar dados acadêmicos do aluno no fluxo da solicitação (Passo 3/8)
+ *     tags: [Solicitação]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: ID da solicitação
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/paths/~1solicitacao~1{id}~1dados-academicos/post/requestBody/content/application~1json/schema'
+ *     responses:
+ *       200:
+ *         description: Dados acadêmicos atualizados com sucesso
+ *       400:
+ *         description: Dados inválidos
+ *       403:
+ *         description: Não autorizado a alterar esta solicitação
+ *       404:
+ *         description: Solicitação ou aluno não encontrado
+ */
+router.patch("/:id/dados-academicos", authenticate, requireAluno, SolicitacaoController.salvarDadosAcademicos);
+
+/**
+ * @openapi
+ * /solicitacao/{id}/situacoes-vida:
+ *   put:
+ *     summary: Atualizar situações que podem impactar a vida do aluno (Passo 6/8)
+ *     tags: [Solicitação]
+ *     description: >
+ *       Atualiza as respostas da Seção 6. Todas as perguntas são opcionais.
+ *       Campos com texto descritivo (Outro/Outra) são limpos caso a respectiva opção não esteja marcada.
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: ID da solicitação
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/paths/~1solicitacao~1{id}~1situacoes-vida/post/requestBody/content/application~1json/schema'
+ *     responses:
+ *       200:
+ *         description: Situações de vida atualizadas com sucesso
+ *       400:
+ *         description: Dados inválidos
+ *       403:
+ *         description: Não autorizado a alterar esta solicitação
+ *       404:
+ *         description: Solicitação ou aluno não encontrado
+ */
+router.put("/:id/situacoes-vida", authenticate, requireAluno, SolicitacaoController.salvarSituacoesVida);
+
+/**
+ * @openapi
+ * /solicitacao/{id}/relato:
+ *   put:
+ *     summary: Atualizar o relato pessoal da solicitação (Passo 7/8)
+ *     tags: [Solicitação]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: ID da solicitação
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/paths/~1solicitacao~1{id}~1relato/post/requestBody/content/application~1json/schema'
+ *     responses:
+ *       200:
+ *         description: Relato pessoal atualizado com sucesso
+ *       400:
+ *         description: Texto não informado ou excedeu 2000 caracteres
+ *       403:
+ *         description: Não autorizado a alterar esta solicitação
+ *       404:
+ *         description: Solicitação não encontrada
+ */
+router.put("/:id/relato", authenticate, requireAluno, SolicitacaoController.salvarRelato);
+
+export default router;

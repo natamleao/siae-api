@@ -1,41 +1,48 @@
-import {
-    Sexo,
-    OrientacaoSexual,
-    IdentidadeGenero,
-    EtniaRaca,
-    EstadoCivil,
-} from "@prisma/client";
+import { TipoResponsavel, Sexo, IdentidadeGenero, OrientacaoSexual, EtniaRaca, EstadoCivil, TipoDeficiencia } from "@prisma/client";
 
 export interface RegisterAlunoData {
     nome: string;
-    matricula: string; //ruan eu troquei de number para string, no prisma está como string
+    matricula: string;
     email: string;
     senha: string;
 }
 
-export interface UpdateAlunoData {
+export interface IdentificacaoPessoalData {
+    nome?: string;
     cpf?: string;
     rg?: string;
-    emailContato?: string;
+    dataNasc?: string;
     telefone?: string;
-    curso?: string;
-    turno?: string;
-    anoIngresso?: number;
-    semestreAtual?: number;
-    tipoIngresso?: string;
-    dataNasc?: Date;
+    emailContato?: string | null;
+    tipoResponsavel?: TipoResponsavel;
+    tipoResponsavelOutro?: string | null;
+    nomeResponsavel?: string;
     sexo?: Sexo;
-    orientacaoSexual?: OrientacaoSexual;
     identidadeGenero?: IdentidadeGenero;
+    identidadeGeneroOutro?: string | null;
+    orientacaoSexual?: OrientacaoSexual;
+    orientacaoSexualOutro?: string | null;
     etniaRaca?: EtniaRaca;
     estadoCivil?: EstadoCivil;
-    deficiencia?: string;
+    tipoDeficiencia?: TipoDeficiencia;
+    tipoDeficienciaOutro?: string | null;
+}
+
+export interface DadosAcademicosData {
+    matricula?: string;
+    curso?: string;
+    turno?: string;
+    tipoIngresso?: string;
+    anoIngresso?: number;
+    semestreAtual?: number;
+    recebeuAuxilioGraduacao?: boolean | string;
+    auxilioGraduacaoDescricao?: string | null;
 }
 
 export interface AlunoRegisterResponse {
     id: number;
     nome: string;
-    matricula: string; //novamente modificando do scopo original
+    matricula: string;
     email: string;
     permissao: string;
     token: string;

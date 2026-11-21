@@ -31,18 +31,29 @@ const router = Router();
  *             properties:
  *               nome:
  *                 type: string
+ *                 minLength: 1
+ *                 maxLength: 50
  *                 example: João da Silva
+ *                 description: Nome completo, com pelo menos duas palavras e apenas letras.
  *               matricula:
  *                 type: string
- *                 example: "2023001234"
+ *                 pattern: '^\d{6}$'
+ *                 minLength: 6
+ *                 maxLength: 6
+ *                 example: "012345"
  *               email:
  *                 type: string
  *                 format: email
- *                 example: joao@aluno.com
+ *                 pattern: '^[^\s@]+@alu\.ufc\.br$'
+ *                 example: joao@alu.ufc.br
  *               senha:
  *                 type: string
  *                 format: password
- *                 example: senha123
+ *                 minLength: 8
+ *                 maxLength: 16
+ *                 pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%&*_-]).{8,16}$'
+ *                 example: Senha123!
+ *                 description: Deve conter letra maiúscula, minúscula, número e caractere especial permitido.
  *     responses:
  *       201:
  *         description: Aluno cadastrado com sucesso
@@ -56,61 +67,21 @@ const router = Router();
  *                 data:
  *                   type: object
  *                   properties:
- *                     id: { type: number, example: 1 }
+ *                     id: { type: integer, example: 1 }
+ *                     authId: { type: integer, example: 10 }
  *                     nome: { type: string, example: "João da Silva" }
- *                     matricula: { type: string, example: "2023001234" }
- *                     email: { type: string, example: "joao@aluno.com" }
+ *                     matricula: { type: string, example: "012345" }
+ *                     email: { type: string, example: "joao@alu.ufc.br" }
  *                     permissao: { type: string, example: "ALUNO" }
  *                     token: { type: string, example: "eyJhbGciOiJI..." }
  *       400:
- *         description: Dados inválidos, ou email/matrícula já cadastrados
+ *         description: Dados de cadastro inválidos
+ *       409:
+ *         description: E-mail ou matrícula já cadastrados
+ *       500:
+ *         description: Erro interno ao cadastrar aluno
  */
 router.post("/register", AlunoController.register);
-
-/**
- * @openapi
- * /aluno/dados-complementares:
- *   patch:
- *     summary: Atualizar dados complementares do aluno logado
- *     tags: [Alunos]
- *     security:
- *       - OAuth2PasswordBearer: []
- *       - BearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             description: Todos os campos são opcionais — envie apenas os que deseja atualizar
- *             properties:
- *               cpf: { type: string, example: "123.456.789-00" }
- *               rg: { type: string, example: "MG-12.345.678" }
- *               emailContato: { type: string, example: "contato@email.com" }
- *               telefone: { type: string, example: "(11) 91234-5678" }
- *               curso: { type: string, example: "Engenharia de Software" }
- *               turno: { type: string, example: "Noturno" }
- *               anoIngresso: { type: number, example: 2023 }
- *               semestreAtual: { type: number, example: 3 }
- *               tipoIngresso: { type: string, example: "Vestibular" }
- *               dataNasc: { type: string, format: date, example: "2000-05-10" }
- *               sexo: { type: string, example: "Masculino" }
- *               orientacaoSexual: { type: string, example: "Heterossexual" }
- *               identidadeGenero: { type: string, example: "Cisgênero" }
- *               etniaRaca: { type: string, example: "Parda" }
- *               estadoCivil: { type: string, example: "Solteiro" }
- *               deficiencia: { type: string, example: "Nenhuma" }
- *     responses:
- *       200:
- *         description: Dados atualizados com sucesso
- *       400:
- *         description: CPF ou RG já cadastrados por outro aluno
- *       401:
- *         description: Não autenticado (Token ausente ou inválido)
- *       403:
- *         description: Acesso negado (Requer permissão de ALUNO)
- */
-router.patch("/dados-complementares", authenticate, requireAluno, AlunoController.updateDadosComplementares);
 
 /**
  * @openapi

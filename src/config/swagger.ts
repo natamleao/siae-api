@@ -11,12 +11,6 @@ const swaggerOptions: swaggerJSDoc.Options = {
         name: 'Equipe SIAE',
       },
     },
-    servers: [
-      {
-        url: 'http://localhost:3000',
-        description: 'Servidor Local de Desenvolvimento',
-      },
-    ],
     components: {
       securitySchemes: {
         OAuth2PasswordBearer: {
@@ -49,7 +43,7 @@ const swaggerOptions: swaggerJSDoc.Options = {
             password: {
               type: 'string',
               format: 'password',
-              example: '123456',
+              example: 'Senha123!',
             },
           },
         },
@@ -92,26 +86,94 @@ const swaggerOptions: swaggerJSDoc.Options = {
         },
         RegisterInput: {
           type: 'object',
-          required: ['email', 'password'],
+          required: ['nome', 'matricula', 'email', 'senha'],
           properties: {
+            nome: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 50,
+              pattern: '^[\\p{L}\\s]+$',
+              example: 'João da Silva',
+              description: 'Nome completo, com pelo menos duas palavras.',
+            },
+            matricula: {
+              type: 'string',
+              pattern: '^\\d{6}$',
+              minLength: 6,
+              maxLength: 6,
+              example: '012345',
+            },
             email: {
               type: 'string',
               format: 'email',
-              example: 'aluno@siae.com',
+              pattern: '^[^\\s@]+@alu\\.ufc\\.br$',
+              example: 'aluno@alu.ufc.br',
+            },
+            senha: {
+              type: 'string',
+              format: 'password',
+              minLength: 8,
+              maxLength: 16,
+              pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%&*_-]).{8,16}$',
+              example: 'Senha123!',
+              description: 'Deve conter letra maiúscula, minúscula, número e caractere especial permitido.',
+            },
+          },
+        },
+        AuthRegisterInput: {
+          type: 'object',
+          required: ['nome', 'matricula', 'email', 'password'],
+          properties: {
+            nome: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 50,
+              pattern: '^[\\p{L}\\s]+$',
+              example: 'João da Silva',
+              description: 'Nome completo, com pelo menos duas palavras.',
+            },
+            matricula: {
+              type: 'string',
+              pattern: '^\\d{6}$',
+              minLength: 6,
+              maxLength: 6,
+              example: '012345',
+            },
+            email: {
+              type: 'string',
+              format: 'email',
+              pattern: '^[^\\s@]+@alu\\.ufc\\.br$',
+              example: 'aluno@alu.ufc.br',
             },
             password: {
               type: 'string',
               format: 'password',
-              example: '123456',
+              minLength: 8,
+              maxLength: 16,
+              pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%&*_-]).{8,16}$',
+              example: 'Senha123!',
+              description: 'Deve conter letra maiúscula, minúscula, número e caractere especial permitido.',
             },
-            matricula: {
-              type: 'number',
-              example: 2024001,
+          },
+        },
+        AuthRegisterResponse: {
+          type: 'object',
+          properties: {
+            success: {
+              type: 'boolean',
+              example: true,
             },
-            permissao: {
+            message: {
               type: 'string',
-              enum: ['ALUNO', 'TECNICO', 'ASSISTENTE'],
-              example: 'ALUNO',
+              example: 'Aluno registrado com sucesso.',
+            },
+            user: {
+              type: 'object',
+              properties: {
+                id: { type: 'number', example: 1 },
+                email: { type: 'string', example: 'aluno@alu.ufc.br' },
+                permissao: { type: 'string', example: 'ALUNO' },
+              },
             },
           },
         },
@@ -137,7 +199,9 @@ const swaggerOptions: swaggerJSDoc.Options = {
             newPassword: {
               type: 'string',
               format: 'password',
-              example: 'novaSenha123',
+              minLength: 8,
+              maxLength: 16,
+              example: 'NovaSenha123!',
             },
           },
         },
@@ -161,7 +225,9 @@ const swaggerOptions: swaggerJSDoc.Options = {
             senha: {
               type: 'string',
               format: 'password',
-              example: 'senhaForte123',
+              minLength: 8,
+              maxLength: 16,
+              example: 'Senha123!',
             },
             permissao: {
               type: 'string',

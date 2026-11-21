@@ -2,13 +2,17 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { Permissao } from "../enums/permissions";
 
-const JWT_SECRET = process.env.JWT_SECRET || 'KEY';
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+    throw new Error('A variável JWT_SECRET não foi definida.');
+}
 
 export interface AuthRequest extends Request {
     user?: {
         id: number;
         email: string;
-        permissao: string;
+        permissao: Permissao;
     };
 }
 
@@ -32,8 +36,31 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
             });
         }
 
-        const decoded = jwt.verify(token, JWT_SECRET) as any;
-        req.user = decoded;
+        const decoded = jwt.verify(token, JWT_SECRET, {
+            algorithms: ["HS256"]
+        });
+
+        if (
+            typeof decoded !== "object" ||
+            decoded === null ||
+            !Number.isInteger(decoded.id) ||
+            decoded.id <= 0 ||
+            typeof decoded.email !== "string" ||
+            !decoded.email.trim() ||
+            !Object.values(Permissao).includes(decoded.permissao)
+        ) {
+            return res.status(401).json({
+                success: false,
+                message: "Token inválido ou expirado"
+            });
+        }
+
+        req.user = {
+            id: decoded.id,
+            email: decoded.email,
+            permissao: decoded.permissao
+        };
+
         next();
     } catch (error: any) {
         return res.status(401).json({
@@ -57,7 +84,7 @@ export const logout = (req: Request, res: Response): Response => {
 
 }
 export const requireAdmin = (req: AuthRequest, res: Response, next: NextFunction) => {
-    if (req.user?.permissao === Permissao.ADMIN) {
+    if (req.user?.permissao === Permissao.ADMIN || req.user?.permissao === Permissao.ALUNO_ADMIN) {
         next();
     } else {
         return res.status(403).json({
@@ -69,7 +96,10 @@ export const requireAdmin = (req: AuthRequest, res: Response, next: NextFunction
 
 export const requireFuncionario = (req: AuthRequest, res: Response, next: NextFunction) => {
     if (
-        req.user?.permissao === Permissao.TECNICO || req.user?.permissao === Permissao.ASSISTENTE || req.user?.permissao === Permissao.ADMIN
+        req.user?.permissao === Permissao.TECNICO ||
+        req.user?.permissao === Permissao.ASSISTENTE ||
+        req.user?.permissao === Permissao.ADMIN ||
+        req.user?.permissao === Permissao.ALUNO_ADMIN
     ) {
         next();
     } else {
@@ -83,7 +113,8 @@ export const requireFuncionario = (req: AuthRequest, res: Response, next: NextFu
 
 export const requireAluno = (req: AuthRequest, res: Response, next: NextFunction) => {
     if (
-        req.user?.permissao === Permissao.ALUNO
+        req.user?.permissao === Permissao.ALUNO ||
+        req.user?.permissao === Permissao.ALUNO_ADMIN
     ) {
         next();
     } else {
@@ -95,3 +126,21 @@ export const requireAluno = (req: AuthRequest, res: Response, next: NextFunction
 }
 
 
+
+export const requirePainelAdministrativo = (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction
+) => {
+    if (
+        req.user?.permissao === Permissao.TECNICO ||
+        req.user?.permissao === Permissao.ASSISTENTE
+    ) {
+        return next();
+    }
+
+    return res.status(403).json({
+        success: false,
+        message: "Acesso restrito a técnicos e assistentes."
+    });
+};
